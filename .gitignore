@@ -1,0 +1,8 @@
+.env
+.env.prod
+.env.dev
+.env.local
+
+*.log
+
+node_modules/
