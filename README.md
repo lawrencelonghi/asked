@@ -122,13 +122,10 @@ npm run lint     # Executar ESLint
 ```
 
 
-## 🤝 Contribuindo
+## 🤝 Contribua
 
 Contribuições são bem-vindas! Sinta-se livre para abrir issues ou pull requests.
 
-## 📝 Licença
-
-Este projeto está sob a licença MIT.
 
 ## 👤 Autor
 
@@ -140,4 +137,4 @@ Lawrence Longhi
 
 ---
 
-⭐ Se você gostou deste projeto, considere dar uma estrela!
+⭐ Se você gostou deste projeto, considere dar uma estrela e... Vamos jogar!
