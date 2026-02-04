@@ -1,6 +1,5 @@
 'use client'
-
-import Image from "next/image";
+import { io, Socket} from 'socket.io-client';
 import { useState, useRef, useEffect } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 import { Send } from 'lucide-react';
@@ -14,7 +13,9 @@ interface Message {
   id: number;
   text: string;
   timestamp: number;
+  senderId: string
 }
+
 
 export default function Home() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -23,6 +24,40 @@ export default function Home() {
   const [playerName, setPlayerName] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null)
+  const [mySocketId, setMySocketId] = useState(''); 
+
+
+  useEffect(() => {
+    socketRef.current = io('http://localhost:3001')
+
+    socketRef.current.on('connect', () => {
+      const id = socketRef.current?.id || '';
+      setMySocketId(id);
+      console.log('Meu socket ID:', id);
+  });
+
+    socketRef.current?.on('receive_message', (data) => {
+
+      setMessages(prev => [...prev, data])
+    })
+
+    socketRef.current.on('display_players', (data) => {
+      setPlayers(data)
+    })
+
+    return () => {
+      if(socketRef.current){
+        socketRef.current.disconnect()
+      }
+    }
+  },[])
+
+    function sendMessage() {
+    if (socketRef.current) {
+      socketRef.current.emit("send_message", message);
+    }
+  }
 
   const onEmojiClick = (emojiObject: any) => {
     setMessage(prev => prev + emojiObject.emoji);
@@ -57,27 +92,28 @@ export default function Home() {
 
   function handlePlayerName(e: React.FormEvent) {
     e.preventDefault();
-    if (playerName.trim()) {
+    if (playerName.trim() && socketRef.current) {
       const newPlayer: Player = {
         id: Date.now(),
         name: playerName
       };
       
-      setPlayers(prev => [...prev, newPlayer]);
+      socketRef.current.emit('send_player', newPlayer)
       setPlayerName('');
     }
   }
 
   function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
-    if (message.trim()) {
+    if (message.trim() && socketRef.current) {
       const newMessage: Message = {
         id: Date.now(),
         text: message,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        senderId: mySocketId
       };
-      
-      setMessages(prev => [...prev, newMessage]);
+
+      socketRef.current.emit("send_message", newMessage);
       setMessage(''); // Limpa o input
     }
   }
@@ -121,7 +157,8 @@ export default function Home() {
         {/* Área de mensagens */}
         <div className="flex-1 overflow-auto p-4">
           {messages.map((msg) => (
-            <div key={msg.id} className="mb-2">
+            <div key={msg.id} className="flex gap-4 mb-2">
+              <span>{msg.senderId}:</span>
               <p>{msg.text}</p>
             </div>
           ))}
