@@ -1,6 +1,7 @@
 'use client'
 import { io, Socket} from 'socket.io-client';
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import EmojiPicker from 'emoji-picker-react';
 import { Send } from 'lucide-react';
 
@@ -13,32 +14,45 @@ interface Message {
   id: number;
   text: string;
   timestamp: number;
-  senderId: string
+  senderId: string;
+  senderName: string;
 }
 
-
-export default function Home() {
+export default function Game() {
+  const searchParams = useSearchParams();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [playerName, setPlayerName] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<Socket | null>(null)
+  const socketRef = useRef<Socket | null>(null);
   const [mySocketId, setMySocketId] = useState(''); 
-
+  const [myPlayerName, setMyPlayerName] = useState('');
 
   useEffect(() => {
+    // Pegar o nome dos query parameters
+    const nameFromUrl = searchParams.get('playerName');
+    if (nameFromUrl) {
+      setMyPlayerName(nameFromUrl);
+    }
+
     socketRef.current = io('http://localhost:3001')
 
     socketRef.current.on('connect', () => {
       const id = socketRef.current?.id || '';
       setMySocketId(id);
       console.log('Meu socket ID:', id);
-  });
+      
+      // Enviar informações do player quando conectar
+      if (nameFromUrl) {
+        socketRef.current?.emit('send_player', {
+          id: Date.now(),
+          name: nameFromUrl
+        });
+      }
+    });
 
     socketRef.current?.on('receive_message', (data) => {
-
       setMessages(prev => [...prev, data])
     })
 
@@ -51,19 +65,12 @@ export default function Home() {
         socketRef.current.disconnect()
       }
     }
-  },[])
-
-    function sendMessage() {
-    if (socketRef.current) {
-      socketRef.current.emit("send_message", message);
-    }
-  }
+  }, [searchParams])
 
   const onEmojiClick = (emojiObject: any) => {
     setMessage(prev => prev + emojiObject.emoji);
   };
 
-  // Fechar quando clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
@@ -80,41 +87,27 @@ export default function Home() {
     };
   }, [showEmojiPicker]);
 
-  // Log atualizado da lista de players
   useEffect(() => {
     console.log('Players atualizados:', players);
   }, [players]);
 
-  // Log atualizado das mensagens
   useEffect(() => {
     console.log('Mensagens atualizadas:', messages);
   }, [messages]);
 
-  function handlePlayerName(e: React.FormEvent) {
-    e.preventDefault();
-    if (playerName.trim() && socketRef.current) {
-      const newPlayer: Player = {
-        id: Date.now(),
-        name: playerName
-      };
-      
-      socketRef.current.emit('send_player', newPlayer)
-      setPlayerName('');
-    }
-  }
-
   function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
-    if (message.trim() && socketRef.current) {
+    if (message.trim() && socketRef.current && myPlayerName) {
       const newMessage: Message = {
         id: Date.now(),
         text: message,
         timestamp: Date.now(),
-        senderId: mySocketId
+        senderId: mySocketId,
+        senderName: myPlayerName
       };
 
       socketRef.current.emit("send_message", newMessage);
-      setMessage(''); // Limpa o input
+      setMessage('');
     }
   }
 
@@ -123,57 +116,37 @@ export default function Home() {
       <div className="flex flex-col gap-10">
         <h1 className="mt-8 text-4xl">ASKED</h1>
 
-        <form onSubmit={handlePlayerName} className="flex gap-2">
-          <label htmlFor="playerName">Type your name:</label>
-          <input 
-            type="text" 
-            id="playerName"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            className="border-b focus:outline-none"
-          />
-          <button type="submit" className="px-3 py-1 text-sm text-white border hover:text-black hover:bg-white hover:border-black">
-            enter
-          </button>
-        </form>
-
-        {/* Lista de jogadores */}
-        {players.length > 0 && (
-          <div>
-            <h3 className="font-bold mb-2">Players:</h3>
-            <ul className="list-disc pl-5">
-              {players.map((player) => (
-                <li key={player.id}>
-                  {player.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div>
+          <span>Players:</span>
+          <ul>
+            {players.map(p =>(
+              <div key={p.id} className='flex items-center'>
+                <span className={p ? 'mr-2 w-2 h-2 rounded-4xl bg-green-500' : ''} ></span>
+                <li>{p.name}</li>
+              </div>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <div className="w-[50vw] h-[80vh] border mt-8 flex flex-col justify-between relative">
         
-        {/* Área de mensagens */}
         <div className="flex-1 overflow-auto p-4">
           {messages.map((msg) => (
             <div key={msg.id} className="flex gap-4 mb-2">
-              <span>{msg.senderId}:</span>
+              <span className="font-semibold">{msg.senderName}:</span>
               <p>{msg.text}</p>
             </div>
           ))}
         </div>
 
-        {/* Emoji Picker */}
         {showEmojiPicker && (
           <div ref={emojiPickerRef} className="absolute bottom-16 right-4 z-10">
             <EmojiPicker onEmojiClick={onEmojiClick} />
           </div>
         )}
 
-        {/* Input com ícone */}
         <form onSubmit={handleSendMessage} className="relative flex items-center border-t">
-          {/* Ícone de emoji */}
           <button 
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}

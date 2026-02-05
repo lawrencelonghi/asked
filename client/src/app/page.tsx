@@ -1,9 +1,8 @@
 'use client'
 
-import Image from "next/image";
 import { useState, useRef, useEffect } from 'react';
-import EmojiPicker from 'emoji-picker-react';
-import { Send } from 'lucide-react';
+import { io, Socket} from 'socket.io-client';
+import { useRouter } from 'next/navigation';
 
 interface Player {
   id: number;
@@ -13,17 +12,37 @@ interface Player {
 export default function Home() {
   const [playerName, setPlayerName] = useState('');
   const [savedPlayer, setSavedPlayer] = useState<Player | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    socketRef.current = io('http://localhost:3001')
+
+    return () => {
+      if(socketRef.current){
+        socketRef.current.disconnect()
+      }
+    }
+  }, [])
+  
 
   function handlePlayerName(e: React.FormEvent) {
     e.preventDefault();
-    if (playerName.trim()) {
+    if (playerName.trim() && socketRef.current) {
       const newPlayer: Player = {
         id: Date.now(),
         name: playerName
       };
       
-      setSavedPlayer(newPlayer);
+      socketRef.current.emit('send_player', newPlayer)
+      setSavedPlayer(newPlayer)
       setPlayerName('');
+    }
+  }
+
+  function handleCreateRoom() {
+    if (savedPlayer) {
+      router.push(`/game?playerName=${encodeURIComponent(savedPlayer.name)}`);
     }
   }
 
@@ -46,17 +65,22 @@ export default function Home() {
     </div>
     }
 
-
     {savedPlayer && 
     <div className="flex flex-col items-center gap-10">
       <h2 className="text-2xl">Hello, {savedPlayer.name}!</h2>
 
         <div className="flex flex-col gap-4 items-center">
-          <button className="border text-sm w-fit px-4 py-2 hover:bg-white  cursor-pointer hover:text-black">
+          <button 
+            onClick={handleCreateRoom}
+            className="border text-sm w-fit px-4 py-2 hover:bg-white cursor-pointer hover:text-black"
+          >
             CREATE A ROOM 
           </button>  
           <span>or</span>
-          <button className="border text-sm w-fit px-4 py-2 hover:bg-white  cursor-pointer hover:text-black">
+          <button 
+            onClick={handleCreateRoom}
+            className="border text-sm w-fit px-4 py-2 hover:bg-white cursor-pointer hover:text-black"
+          >
             JOIN A ROOM 
           </button>  
         </div>  

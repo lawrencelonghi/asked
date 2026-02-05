@@ -8,16 +8,14 @@ dotenv.config()
 
 const app = express();
 
-
 const PORT = process.env.PORT || 3001;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.use(cors({
-  origin: 'http://localhost:3000'  // Next.js
+  origin: 'http://localhost:3000'
 }));
 
 const server = http.createServer(app)
-
 
 const io = new Server(server, {
   cors: {
@@ -26,7 +24,7 @@ const io = new Server(server, {
   }
 });
 
-let players: Array<{id: number, name: string}> = []
+let players: Array<{id: number, name: string, socketId: string}> = []
 
 io.on("connection", (socket) => {
   console.log('player connected', socket.id);
@@ -39,21 +37,30 @@ io.on("connection", (socket) => {
   });
 
   socket.on('send_player', (data) => {
-    // Adiciona o player ao array
-    players.push(data);
+    // Adiciona o socketId ao player
+    const playerWithSocket = {
+      ...data,
+      socketId: socket.id
+    };
+    
+    players.push(playerWithSocket);
     console.log('Players atuais:', players);
+    
+    // Envia os dados do player de volta para ele
+    socket.emit('your_player_data', playerWithSocket);
     
     // Envia a lista completa para TODOS os clientes
     io.emit('display_players', players);
   });
 
-
   socket.on('disconnect', () => {
-  console.log('player disconnected', socket.id);
+    console.log('player disconnected', socket.id);
+    
+    // Remove o player da lista quando desconectar
+    players = players.filter(p => p.socketId !== socket.id);
+    io.emit('display_players', players);
   });
 });
-
-
 
 server.listen(PORT, () => {
   console.log(`server running on http://localhost:${PORT} 🚀 `);
