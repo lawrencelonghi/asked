@@ -4,17 +4,18 @@ import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import EmojiPicker from 'emoji-picker-react';
 import { Send } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
 
 interface Player {
-  id: number;
+  socketID: string;
   name: string;
 }
 
 interface Message {
-  id: number;
+  senderSocketID: string;
   text: string;
   timestamp: number;
-  senderId: string;
   senderName: string;
 }
 
@@ -28,9 +29,12 @@ export default function Game() {
   const socketRef = useRef<Socket | null>(null);
   const [mySocketId, setMySocketId] = useState(''); 
   const [myPlayerName, setMyPlayerName] = useState('');
+  const [ newRoomId, setNewRoomId ] = useState('')
+  const router = useRouter();
+
 
   useEffect(() => {
-    // Pegar o nome dos query parameters
+    // pega o nome dos query parameters
     const nameFromUrl = searchParams.get('playerName');
     if (nameFromUrl) {
       setMyPlayerName(nameFromUrl);
@@ -41,15 +45,27 @@ export default function Game() {
     socketRef.current.on('connect', () => {
       const id = socketRef.current?.id || '';
       setMySocketId(id);
-      console.log('Meu socket ID:', id);
-      
-      // Enviar informações do player quando conectar
-      if (nameFromUrl) {
-        socketRef.current?.emit('send_player', {
-          id: Date.now(),
-          name: nameFromUrl
-        });
+
+      const roomIdFromUrl = searchParams.get('roomId');
+
+      if (roomIdFromUrl) {
+        socketRef.current?.emit('join_room', { roomId: roomIdFromUrl });
+      } else {
+        socketRef.current?.emit('create_room');
       }
+
+      if (nameFromUrl) {
+        socketRef.current?.emit('send_player', { name: nameFromUrl });
+      }
+    });
+
+    socketRef.current.on('room_id', (data) => {
+      setNewRoomId(data);
+    });
+
+    socketRef.current.on('room_error', (msg: string) => {
+      alert(msg); // ou um estado de erro mais elegante
+      router.push('/');
     });
 
     socketRef.current?.on('receive_message', (data) => {
@@ -99,10 +115,9 @@ export default function Game() {
     e.preventDefault();
     if (message.trim() && socketRef.current && myPlayerName) {
       const newMessage: Message = {
-        id: Date.now(),
+        senderSocketID: mySocketId,
         text: message,
         timestamp: Date.now(),
-        senderId: mySocketId,
         senderName: myPlayerName
       };
 
@@ -116,11 +131,13 @@ export default function Game() {
       <div className="flex flex-col gap-10">
         <h1 className="mt-8 text-4xl">ASKED</h1>
 
+        <span>Room id: {newRoomId} </span>
+
         <div>
           <span>Players:</span>
           <ul>
             {players.map(p =>(
-              <div key={p.id} className='flex items-center'>
+              <div key={p.socketID} className='flex items-center'>
                 <span className={p ? 'mr-2 w-2 h-2 rounded-4xl bg-green-500' : ''} ></span>
                 <li>{p.name}</li>
               </div>
@@ -133,7 +150,7 @@ export default function Game() {
         
         <div className="flex-1 overflow-auto p-4">
           {messages.map((msg) => (
-            <div key={msg.id} className="flex gap-4 mb-2">
+            <div key={msg.senderSocketID} className="flex gap-4 mb-2">
               <span className="font-semibold">{msg.senderName}:</span>
               <p>{msg.text}</p>
             </div>
