@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 
 interface Player {
-  socketID: string;
+  socketId: string;
   name: string;
 }
 
@@ -141,14 +141,16 @@ export default function Game() {
 
         <div>
           <span>Players:</span>
-          <ul>
-            {players.map(p =>(
-              <div key={p.socketID} className='flex items-center'>
-                <span className={p ? 'mr-2 w-2 h-2 rounded-4xl bg-green-500' : ''} ></span>
-                <li>{p.name}</li>
-              </div>
-            ))}
-          </ul>
+        <ul>
+          {players.map(p => (
+            <div key={`${p.name}-${p.socketId}`} className='flex items-center'>
+              <span className='mr-2 w-2 h-2 rounded-4xl bg-green-500'></span>
+              <li className={p.socketId === mySocketId ? 'text-orange-500 font-semibold' : ''}>
+                {p.name}
+              </li>
+            </div>
+          ))}
+        </ul>
         </div>
       </div>
 
@@ -157,7 +159,9 @@ export default function Game() {
         <div className="flex-1 overflow-auto p-4">
           {messages.map((msg) => (
             <div key={`${msg.senderSocketID}-${msg.timestamp}`} className="flex gap-4 mb-2">
-              <span className="font-semibold">{msg.senderName}:</span>
+              <span className={msg.senderSocketID === mySocketId ? 'font-semibold text-orange-500' : 'font-semibold'}>
+                {msg.senderName}:
+              </span>
               <p>{msg.text}</p>
             </div>
           ))}
