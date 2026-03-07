@@ -63,16 +63,22 @@ export default function Game() {
       setNewRoomId(data);
     });
 
+    socketRef.current.on('room_history',(data: Message[]) => {
+      setMessages(data)
+    })
+
     socketRef.current.on('room_error', (msg: string) => {
       alert(msg); // ou um estado de erro mais elegante
       router.push('/');
     });
 
-    socketRef.current?.on('receive_message', (data) => {
+    socketRef.current?.on('receive_message', (data: Message) => {
       setMessages(prev => [...prev, data])
     })
 
     socketRef.current.on('display_players', (data) => {
+      console.log(`tipo de data displau_players é: ${typeof data}`);
+      
       setPlayers(data)
     })
 
@@ -150,7 +156,7 @@ export default function Game() {
         
         <div className="flex-1 overflow-auto p-4">
           {messages.map((msg) => (
-            <div key={msg.senderSocketID} className="flex gap-4 mb-2">
+            <div key={`${msg.senderSocketID}-${msg.timestamp}`} className="flex gap-4 mb-2">
               <span className="font-semibold">{msg.senderName}:</span>
               <p>{msg.text}</p>
             </div>
