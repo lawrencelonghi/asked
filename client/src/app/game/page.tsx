@@ -5,19 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import EmojiPicker from 'emoji-picker-react';
 import { Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-
-interface Player {
-  socketId: string;
-  name: string;
-}
-
-interface Message {
-  senderSocketID: string;
-  text: string;
-  timestamp: number;
-  senderName: string;
-}
+import { Message, Player, Vote } from '../../../../types.js'
 
 export default function Game() {
   const searchParams = useSearchParams();
@@ -27,9 +15,12 @@ export default function Game() {
   const [players, setPlayers] = useState<Player[]>([]);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
-  const [mySocketId, setMySocketId] = useState(''); 
-  const [myPlayerName, setMyPlayerName] = useState('');
+  const [ mySocketId, setMySocketId ] = useState(''); 
+  const [ myPlayerName, setMyPlayerName]  = useState('');
   const [ newRoomId, setNewRoomId ] = useState('')
+  const [ votedPlayer, setVotedPlayer ] = useState<Player | null>(null)
+  const [ playerHasVoted, setPlayerHasVoted ] = useState(false)
+  const [ mainPlayer, setMainPlayer ] = useState<Player | null>(null)
   const router = useRouter();
 
 
@@ -53,7 +44,11 @@ export default function Game() {
       } else {
         socketRef.current?.emit('create_room');
       }
+    });
 
+    // só envia o nome depois de estar na sala
+    socketRef.current.on('room_id', (data) => {
+      setNewRoomId(data);
       if (nameFromUrl) {
         socketRef.current?.emit('send_player', { name: nameFromUrl });
       }
@@ -76,10 +71,12 @@ export default function Game() {
       setMessages(prev => [...prev, data])
     })
 
-    socketRef.current.on('display_players', (data) => {
-      console.log(`tipo de data displau_players é: ${typeof data}`);
-      
+    socketRef.current.on('display_players', (data) => {      
       setPlayers(data)
+    })
+
+    socketRef.current.on('voting_result', (data) => {
+      setMainPlayer(data)
     })
 
     return () => {
@@ -109,13 +106,6 @@ export default function Game() {
     };
   }, [showEmojiPicker]);
 
-  useEffect(() => {
-    console.log('Players atualizados:', players);
-  }, [players]);
-
-  useEffect(() => {
-    console.log('Mensagens atualizadas:', messages);
-  }, [messages]);
 
   function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
@@ -132,10 +122,20 @@ export default function Game() {
     }
   }
 
+  function handleVotedPlayer(player: Player) {
+    setVotedPlayer(player);
+    const vote: Vote = {
+      whoVoted: { socketId: mySocketId, name: myPlayerName },
+      votedFor: player
+    }
+    socketRef.current?.emit("voted_player", vote );
+    setPlayerHasVoted(true)
+  }
+
   return (
-    <div className="ml-4 mr-4 flex justify-between">
+    <div className="ml-8 mr-8 mt-12  flex justify-between">
       <div className="flex flex-col gap-10">
-        <h1 className="mt-8 text-4xl">ASKED</h1>
+        <h1 className="text-4xl">ASKED</h1>
 
         <span>Room id: {newRoomId} </span>
 
@@ -154,7 +154,38 @@ export default function Game() {
         </div>
       </div>
 
-      <div className="w-[50vw] h-[80vh] border mt-8 flex flex-col justify-between relative">
+      {/* GAME AREA */}
+
+      {/* VOTING SECTION */}
+      <div className='flex flex-col items-center gap-20 mt-20'>
+        <h2 className='text-2xl font-semibold'>WHO SHOULD PLAY NOW?</h2>
+        <ul className='grid grid-cols-3 gap-4'>
+        {players.map(p => (
+          <li key={p.name} 
+            className={
+              votedPlayer?.socketId === p.socketId
+                ? 'border text-center bg-red-600 max-w-30 text-md px-4 py-2'
+                : 'border text-center max-w-30 text-md px-4 py-2 hover:bg-white cursor-pointer hover:text-black'
+            } 
+            onClick={() => !playerHasVoted && handleVotedPlayer(p)}
+          >
+            {p.name}
+          </li>
+        ))}
+        </ul>
+
+        
+        <span>SELECTED PLAYER: 
+          <span className='text-red-600 text-3xl font-bold tracking-wide ml-2'>
+            {mainPlayer?.name.toUpperCase()}
+          </span>
+        </span>
+        
+
+      </div>
+
+       {/* CHAT   */}
+      <div className="w-[30vw] h-[80vh] border  flex flex-col justify-between relative">
         
         <div className="flex-1 overflow-auto p-4">
           {messages.map((msg) => (
