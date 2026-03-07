@@ -1,4 +1,4 @@
-import { Server, Socket } from 'socket.io'
+import { type Server, type Socket } from 'socket.io'
 import { players, socketRoomMap } from './states.js'
 import { getPlayersInRoom } from '../../utils/playersInRoom.js'
 

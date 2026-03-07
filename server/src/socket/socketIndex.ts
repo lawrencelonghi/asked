@@ -4,6 +4,8 @@ import { generateRoomId } from '../utils/roomsHash.js';
 import { roomHandlers } from './handlers/roomHandler.js';
 import { messageHandlers } from './handlers/messageHandler.js';
 import { playerHandlers } from './handlers/playerHandler..js';
+import { voteHandler } from './handlers/voteHandler.js';
+import { socketRoomMap } from './handlers/states.js';
 
 function socketService() {
 
@@ -21,6 +23,7 @@ function socketService() {
     roomHandlers(socket, io)
     messageHandlers(socket, io)
     playerHandlers(socket, io)
+    voteHandler(socket, io)
   })
 }
 
