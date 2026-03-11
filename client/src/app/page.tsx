@@ -45,7 +45,7 @@ export default function Home() {
 
   function handleCreateRoom() {
     if (savedPlayer) {
-      router.push(`/game?playerName=${encodeURIComponent(savedPlayer.name)}`);
+      router.push(`/voting?playerName=${encodeURIComponent(savedPlayer.name)}`);
     }
   }
 
@@ -56,7 +56,7 @@ export default function Home() {
   function handleJoinRoom(e: React.FormEvent) {
     e.preventDefault();
     if (savedPlayer && userTypedRoom.trim()) {
-      router.push(`/game?playerName=${encodeURIComponent(savedPlayer.name)}&roomId=${encodeURIComponent(userTypedRoom)}`);
+      router.push(`/voting?playerName=${encodeURIComponent(savedPlayer.name)}&roomId=${encodeURIComponent(userTypedRoom)}`);
     }
   }
 

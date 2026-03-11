@@ -1,163 +1,6 @@
-'use client'
-import { io, Socket} from 'socket.io-client';
-import { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import EmojiPicker from 'emoji-picker-react';
-import { Send } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Message, Player, Vote } from '../../../../types.js'
-import Button from '@/components/Button';
+import React from 'react'
 
-export default function Game() {
-  const searchParams = useSearchParams();
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const emojiPickerRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<Socket | null>(null);
-  const [ mySocketId, setMySocketId ] = useState(''); 
-  const [ myPlayerName, setMyPlayerName]  = useState('');
-  const [ newRoomId, setNewRoomId ] = useState('')
-  const [ votedPlayer, setVotedPlayer ] = useState<Player | null>(null)
-  const [ playerHasVoted, setPlayerHasVoted ] = useState(false)
-  const [ mainPlayer, setMainPlayer ] = useState<Player | null>(null)
-  const [ isVotingCompleted, setIsVotingCompleted ] = useState(false)
-  const [ isPlayerReady, setIsPlayerReady ] = useState(false)
-  const [ allPlayersReady, setAllPlayersReady ] = useState(false)
-
-  
-  const router = useRouter();
-
-
-  useEffect(() => {
-    // pega o nome dos query parameters
-    const nameFromUrl = searchParams.get('playerName');
-    if (nameFromUrl) {
-      setMyPlayerName(nameFromUrl);
-    }
-
-    socketRef.current = io('http://localhost:3001')
-
-    socketRef.current.on('connect', () => {
-      const id = socketRef.current?.id || '';
-      setMySocketId(id);
-
-      const roomIdFromUrl = searchParams.get('roomId');
-
-      if (roomIdFromUrl) {
-        socketRef.current?.emit('join_room', { roomId: roomIdFromUrl });
-      } else {
-        socketRef.current?.emit('create_room');
-      }
-    });
-
-    // só envia o nome depois de estar na sala
-    socketRef.current.on('room_id', (data) => {
-      setNewRoomId(data);
-      if (nameFromUrl) {
-        socketRef.current?.emit('send_player', { name: nameFromUrl });
-      }
-    });
-
-    socketRef.current.on('room_id', (data) => {
-      setNewRoomId(data);
-    });
-
-    socketRef.current.on('room_history',(data: Message[]) => {
-      setMessages(data)
-    })
-
-    socketRef.current.on('room_error', (msg: string) => {
-      alert(msg); // ou um estado de erro mais elegante
-      router.push('/');
-    });
-
-    socketRef.current?.on('receive_message', (data: Message) => {
-      setMessages(prev => [...prev, data])
-    })
-
-    socketRef.current.on('display_players', (data) => {      
-      setPlayers(data)
-    })
-
-    socketRef.current.on('voting_result', (data) => {
-      setMainPlayer(data)
-    })
-
-    socketRef.current.on('all_players_ready', (data: boolean) => {
-      setAllPlayersReady(data)
-    })
-
-    return () => {
-      if(socketRef.current){
-        socketRef.current.disconnect()
-      }
-    }
-  }, [searchParams])
-
-  const onEmojiClick = (emojiObject: any) => {
-    setMessage(prev => prev + emojiObject.emoji);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
-        setShowEmojiPicker(false);
-      }
-    };
-
-    if (showEmojiPicker) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showEmojiPicker]);
-
-
-  function handleSendMessage(e: React.FormEvent) {
-    e.preventDefault();
-    if (message.trim() && socketRef.current && myPlayerName) {
-      const newMessage: Message = {
-        senderSocketID: mySocketId,
-        text: message,
-        timestamp: Date.now(),
-        senderName: myPlayerName
-      };
-
-      socketRef.current.emit("send_message", newMessage);
-      setMessage('');
-    }
-  }
-
-  function handleVotedPlayer(player: Player) {
-    setVotedPlayer(player);
-    const vote: Vote = {
-      whoVoted: { socketId: mySocketId, name: myPlayerName },
-      votedFor: player
-    }
-    socketRef.current?.emit("voted_player", vote );
-    setPlayerHasVoted(true)
-  }
-
-  useEffect(() => {
-    if(mainPlayer) {
-      setIsVotingCompleted(true)
-    }
-  },[mainPlayer])
-
-  function handleStartGame() {
-    const playerReadyToPlay : Player = { 
-      socketId: mySocketId, 
-      name: myPlayerName 
-    }
-    socketRef.current?.emit('player_ready', playerReadyToPlay)
-    setIsPlayerReady(true)
-  }
-
-
+const page = () => {
   return (
     <div className="ml-8 mr-8 mt-12  flex justify-between">
       <div className="flex flex-col gap-10">
@@ -208,13 +51,10 @@ export default function Game() {
         </span>
         
         {isVotingCompleted && (
-          <Button text='START GAME' onClick={handleStartGame}/>
+          <Button text='START GAME' onClick={handleGetReady}/>
 
         )}
 
-        {allPlayersReady && (
-          <span className='text-red-600'>ALL ON BOARD</span>
-        )}
 
       </div>
 
@@ -262,3 +102,5 @@ export default function Game() {
     </div>
   );
 }
+
+export default page
