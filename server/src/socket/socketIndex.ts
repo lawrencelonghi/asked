@@ -5,6 +5,7 @@ import { roomHandlers } from './handlers/roomHandler.js';
 import { messageHandlers } from './handlers/messageHandler.js';
 import { playerHandlers } from './handlers/playerHandler..js';
 import { voteHandler } from './handlers/voteHandler.js';
+import { startGame } from './handlers/startGameHandler.js';
 import { socketRoomMap } from './handlers/states.js';
 
 function socketService() {
@@ -24,6 +25,7 @@ function socketService() {
     messageHandlers(socket, io)
     playerHandlers(socket, io)
     voteHandler(socket, io)
+    startGame(socket, io)
   })
 }
 

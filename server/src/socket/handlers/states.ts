@@ -9,4 +9,6 @@ export const socketRoomMap = new Map<string, string>()
 
 export const votingList = new Map<string, Vote[]>()
 
+export const playersThatAreReady = new Map<string, Player[]>()
+
 

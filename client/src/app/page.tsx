@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { io, Socket} from 'socket.io-client';
 import { useRouter } from 'next/navigation';
+import Button from '@/components/Button';
 
 interface Player {
   id: number;
@@ -74,7 +75,7 @@ export default function Home() {
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}/>
 
-          <button className="border text-sm w-fit px-4 py-2 hover:bg-white  cursor-pointer hover:text-black">ENTER</button>
+     <Button text='ENTER'/>
         </form>
       </div>
     }
@@ -85,19 +86,10 @@ export default function Home() {
       <h2 className="text-2xl">Hello, {savedPlayer.name}!</h2>
 
         <div className="flex flex-col gap-4 items-center">
-          <button 
-            onClick={handleCreateRoom}
-            className="border text-sm w-fit px-4 py-2 hover:bg-white cursor-pointer hover:text-black"
-          >
-            CREATE A ROOM 
-          </button>  
+          <Button text='CREATE ROOM' onClick={handleCreateRoom}/>          
           <span>or</span>
-          <button 
-            onClick={handleButtonJoinRoom}
-            className="border text-sm w-fit px-4 py-2 hover:bg-white cursor-pointer hover:text-black"
-          >
-            JOIN A ROOM 
-          </button>  
+          <Button text='JOIN ROOM' onClick={handleButtonJoinRoom}/>
+
         </div>  
     </div>
     }
@@ -110,7 +102,8 @@ export default function Home() {
                 onChange={(e) => setUserTypedRoom(e.target.value)}
           />
 
-        <button className="border text-sm w-fit px-4 py-2 hover:bg-white  cursor-pointer hover:text-black">ENTER</button>        
+            <Button text='ENTER'/>
+      
       </form>
       }
 

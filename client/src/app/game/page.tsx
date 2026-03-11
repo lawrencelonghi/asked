@@ -6,6 +6,7 @@ import EmojiPicker from 'emoji-picker-react';
 import { Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Message, Player, Vote } from '../../../../types.js'
+import Button from '@/components/Button';
 
 export default function Game() {
   const searchParams = useSearchParams();
@@ -21,6 +22,11 @@ export default function Game() {
   const [ votedPlayer, setVotedPlayer ] = useState<Player | null>(null)
   const [ playerHasVoted, setPlayerHasVoted ] = useState(false)
   const [ mainPlayer, setMainPlayer ] = useState<Player | null>(null)
+  const [ isVotingCompleted, setIsVotingCompleted ] = useState(false)
+  const [ isPlayerReady, setIsPlayerReady ] = useState(false)
+  const [ allPlayersReady, setAllPlayersReady ] = useState(false)
+
+  
   const router = useRouter();
 
 
@@ -79,6 +85,10 @@ export default function Game() {
       setMainPlayer(data)
     })
 
+    socketRef.current.on('all_players_ready', (data: boolean) => {
+      setAllPlayersReady(data)
+    })
+
     return () => {
       if(socketRef.current){
         socketRef.current.disconnect()
@@ -132,6 +142,22 @@ export default function Game() {
     setPlayerHasVoted(true)
   }
 
+  useEffect(() => {
+    if(mainPlayer) {
+      setIsVotingCompleted(true)
+    }
+  },[mainPlayer])
+
+  function handleStartGame() {
+    const playerReadyToPlay : Player = { 
+      socketId: mySocketId, 
+      name: myPlayerName 
+    }
+    socketRef.current?.emit('player_ready', playerReadyToPlay)
+    setIsPlayerReady(true)
+  }
+
+
   return (
     <div className="ml-8 mr-8 mt-12  flex justify-between">
       <div className="flex flex-col gap-10">
@@ -181,6 +207,14 @@ export default function Game() {
           </span>
         </span>
         
+        {isVotingCompleted && (
+          <Button text='START GAME' onClick={handleStartGame}/>
+
+        )}
+
+        {allPlayersReady && (
+          <span className='text-red-600'>ALL ON BOARD</span>
+        )}
 
       </div>
 
