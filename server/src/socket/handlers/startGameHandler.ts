@@ -5,25 +5,25 @@ import type { Player } from '../../../../types.js'
 
 export function startGame(socket: Socket, io: Server) {
   
-socket.on('player_ready', (player: Player) => {
-  const roomId = socketRoomMap.get(socket.id)
-  if (!roomId) return
+  socket.on('player_ready', (player: Player) => {
+    const roomId = socketRoomMap.get(socket.id)
+    if (!roomId) return
 
-  const currentPlayersReady = playersThatAreReady.get(roomId) ?? []
-  
-  const alreadyReady = currentPlayersReady.some(p => p.socketId === player.socketId)
-  if (alreadyReady) {
-    return
-  }
+    const currentPlayersReady = playersThatAreReady.get(roomId) ?? []
+    
+    const alreadyReady = currentPlayersReady.some(p => p.socketId === player.socketId)
+    if (alreadyReady) {
+      return
+    }
 
-  currentPlayersReady.push(player)
-  playersThatAreReady.set(roomId, currentPlayersReady)
+    currentPlayersReady.push(player)
+    playersThatAreReady.set(roomId, currentPlayersReady)
 
-  const totalPlayers = getPlayersInRoom(io, roomId).length
+    const totalPlayers = getPlayersInRoom(io, roomId).length
 
-  if (currentPlayersReady.length === totalPlayers) {
-    io.to(roomId).emit("all_players_ready", true)
-    console.log('all_players_ready!')
-  }
-})
+    if (currentPlayersReady.length === totalPlayers) {
+      io.to(roomId).emit("all_players_ready", true)
+      console.log('all_players_ready!')
+    }
+  })
 }
