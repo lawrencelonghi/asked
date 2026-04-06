@@ -1,4 +1,4 @@
-export class Message {
+class Message {
     id: number;
     content: string;
     senderId: number;
@@ -11,3 +11,5 @@ export class Message {
         this.timestamp = timestamp;
     }
 }
+
+export default Message;

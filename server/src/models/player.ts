@@ -1,4 +1,4 @@
-class Player {
+export class Player {
     name: string;
     socketId: string;
 

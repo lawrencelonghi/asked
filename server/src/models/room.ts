@@ -1,4 +1,4 @@
-import type { Message } from "./message.js";
+import type Message from "../models/message.js"
 
 class Room {
     private id: string;
