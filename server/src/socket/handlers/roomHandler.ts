@@ -4,6 +4,7 @@ import { socketRoomMap, roomMessagesMap } from './states.js'
 import { getPlayersInRoom } from "../../utils/playersInRoom.js"
 import { ConnectionListener } from "./connectionListener.js"
 import { RoomRepository } from "../../repositories/roomRepository.js"
+import { MessageRepository } from "../../repositories/messageRepository.js"
 import Room from "../../models/room.js"
 
 export function roomHandlers(socket: Socket, io: Server) {
@@ -18,7 +19,7 @@ export function roomHandlers(socket: Socket, io: Server) {
 
   //escuta quando o jogador clica em join room e digita o hash enviado por outro jogador. data é o hash que o jogador digito no campo de room (enviado por outro jogador que criou o room), verifica se o room existe, se existir faz o join do jogador no room e guarda a informacao jogador-room (RoomMap.set), manda o hash do room para o novo jogador, pega o historico de mensagens da sala e mostra os jogadores presentes na sala
   socket.on('join_room', (data: { roomId: string }) => {
-    const rooms = io.sockets.adapter.rooms
+    const rooms = io.sockets.adapter.rooms  
 
     if (!rooms.has(data.roomId)) {
       socket.emit('room_error', 'Room not found')
@@ -39,10 +40,12 @@ export function roomHandlers(socket: Socket, io: Server) {
 
 export class RoomConnectionListener extends ConnectionListener {
   private roomRepository: RoomRepository
+  private messageRepository: MessageRepository
 
   constructor(io: Server, socket: Socket) {
     super(io, socket)
     this.roomRepository = new RoomRepository()
+    this.messageRepository = new MessageRepository()
   }
 
   listen() {
@@ -78,8 +81,13 @@ export class RoomConnectionListener extends ConnectionListener {
   }
 
   private onDisconnect() {
-    this.socket.on('disconnect', () => {
-      this.roomRepository.deleteBySocketId(this.socket.id)
-    })
+      this.socket.on('disconnect', () => {
+          const room = this.roomRepository.findBySocketId(this.socket.id)
+
+          if (!room) return
+
+          this.messageRepository.deleteByRoomId(room.getId()) 
+          this.roomRepository.deleteBySocketId(this.socket.id) 
+      })
   }
 }

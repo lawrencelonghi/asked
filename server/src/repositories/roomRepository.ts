@@ -10,23 +10,11 @@ export class RoomRepository {
     }
 
     findById(id: string): Room | null {
-        this.roomList.forEach((room: Room) => {
-            if(room.getId() == id) {
-                return room
-            }
-        })
-
-        return null
+        return this.roomList.find(room => room.getId() === id) ?? null
     }
 
     findBySocketId(socketId: string): Room | null {
-        this.roomList.forEach((room: Room) => {
-            if(room.getSocketId() == socketId) {
-                return room
-            }
-        })
-
-        return null
+        return this.roomList.find(room => room.getSocketId() === socketId) ?? null
     }
     
     save(room: Room): RoomRepository {

@@ -16,12 +16,13 @@ class Room {
     }
 
 
-    getSocketId() {
-        return this.id
+    getSocketId(): string {
+        return this.socketId
     }
 
     _generateId() {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sem caracteres confusos
+        const length = 12
         let id = '';
 
         for (let i = 0; i < length; i++) {
@@ -32,11 +33,11 @@ class Room {
     }
 
     addPlayer(playerId: string) {
-        if (this.players.length < 4) {
+        if (this.players.length < 6) {
             this.players.push(playerId);
             return true;
         }
-        return this;
+        return false;
     }
 
     removePlayer(playerId: string) {

@@ -1,7 +1,7 @@
 import { type Server, type Socket } from 'socket.io'
 import { players, socketRoomMap, playersThatAreReady } from './states.js'
 import { getPlayersInRoom } from '../../utils/playersInRoom.js'
-import type { Player } from '../../../../types.js'
+import { Player } from '../../models/player.js'
 
 export function startGame(socket: Socket, io: Server) {
   
