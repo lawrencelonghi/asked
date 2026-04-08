@@ -46,6 +46,7 @@ export default function Game() {
 
     socketRef.current.on('room_id', (data) => {
       setNewRoomId(data);
+      
       if (nameFromUrl) {
         socketRef.current?.emit('send_player', { name: nameFromUrl });
       }

@@ -25,28 +25,31 @@ export class RoomConnectionListener extends ConnectionListener {
   }
 
   private onCreateRoom() {
-    this.io.on('create_room', () => {
+    this.socket.on('create_room', () => {
       const room = new Room(this.socket.id)
      
       this.socket.join(room.getId())
       this.socket.emit('room_id', room.getId())
       this.socket.emit('display_players', [])
-
       this.roomRepository.save(room)
     })
   }
 
   private onJoinRoom() {
-    this.io.on('join_room', (data: { roomId: string }) => {
+    this.socket.on('join_room', (data: { roomId: string }) => {
       const room = this.roomRepository.findById(data.roomId)
+      
       if (!room) {
         this.socket.emit('room_error', 'Room not found')
         return
       }
 
+      this.socket.join(room.getId())
+      this.socket.emit('room_id', room.getId())
       this.socket.emit('room_history', room.getMessageHistory())
-      this.socket.emit('display_players', room.getPlayers())
 
+      // notifica TODOS na sala, incluindo quem já estava
+      this.io.to(room.getId()).emit('display_players', getPlayersInRoom(this.io, room.getId()))
     })
   }
 

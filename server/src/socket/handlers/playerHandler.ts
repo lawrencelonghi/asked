@@ -21,12 +21,13 @@ export class PlayerConnetionListener extends ConnectionListener {
   private onSendPlayer() {
       this.socket.on('send_player', (data) => {
           const playerWithSocket = { ...data, socketId: this.socket.id }
-          players.push(playerWithSocket)
+          players.push(playerWithSocket)          
 
           const room = this.roomRepository.findBySocketId(this.socket.id)
           if (!room) return
 
           this.io.to(room.getId()).emit('display_players', getPlayersInRoom(this.io, room.getId()))
+          
       })
   }
 
