@@ -8,11 +8,11 @@ export class MessageRepository {
         this.messageList = messageList;
     }
 
-    findById(id: number): Message | null {
+    findById(id: string): Message | null {
         return this.messageList.find(message => message.id === id) ?? null;
     }
 
-    findBySender(senderId: number): Message[] {
+    findBySender(senderId: string): Message[] {
         return this.messageList.filter(message => message.senderId === senderId);
     }
 

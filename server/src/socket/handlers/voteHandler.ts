@@ -1,5 +1,4 @@
 import { type Server, type Socket } from 'socket.io'
-import type { Vote, Player } from '../../../../types.js'
 import { votingList } from './states.js';
 import { getPlayersInRoom } from '../../utils/playersInRoom.js';
 import { socketRoomMap } from './states.js';

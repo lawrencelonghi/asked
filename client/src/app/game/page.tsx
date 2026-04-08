@@ -3,7 +3,7 @@ import { io, Socket} from 'socket.io-client';
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { Message, Player, Vote } from '../../../../types.js'
+import { Message, Player, Vote } from '../../../../shared/types/game'
 import Chat from '@/components/Chat';
 import VotingSection from '@/components/VotingSection';
 import GameSection from '@/components/GameSection';

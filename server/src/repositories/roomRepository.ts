@@ -1,4 +1,3 @@
-import type { Socket } from "socket.io";
 import type Room from "../models/room.js";
 import { roomList } from "../storage/storage.js";
 
@@ -9,10 +8,12 @@ export class RoomRepository {
         this.roomList = roomList
     }
 
+    //pega o room pelo id do proprio room
     findById(id: string): Room | null {
         return this.roomList.find(room => room.getId() === id) ?? null
     }
 
+    //pega o room atraves do id de algum player
     findBySocketId(socketId: string): Room | null {
         return this.roomList.find(room => room.getSocketId() === socketId) ?? null
     }

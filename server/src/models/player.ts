@@ -6,4 +6,12 @@ export class Player {
         this.name = name;
         this.socketId = socketId;
     }
+
+    getByName() {
+        return this.name
+    }
+
+    getById() {
+        return this.socketId
+    } 
 }
