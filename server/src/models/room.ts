@@ -7,7 +7,7 @@ class Room {
 
     constructor(private socketId: string) {
         this.id = this._generateId();
-        this.players = [];
+        this.players = [socketId];
         this.messageHistory = [];
     }
 
@@ -32,22 +32,25 @@ class Room {
         return id;
     }
 
-    addPlayer(playerId: string) {
-        if (this.players.length < 6) {
-            this.players.push(playerId);
-            return true;
+    addPlayer(socketId: string) {
+        if (!this.players.includes(socketId)) {
+        this.players.push(socketId);
         }
-        return false;
     }
 
-    removePlayer(playerId: string) {
-        this.players = this.players.filter(id => id !== playerId);
-        return this;
+    removePlayer(socketId: string) {
+        this.players = this.players.filter(id => id !== socketId);
     }
+
 
     getPlayers() {
         return this.players;
     }
+
+    hasPlayer(socketId: string) {
+        return this.players.includes(socketId);
+    }
+
 
     getPlayersAmount() {
         return this.players.length;

@@ -27,6 +27,8 @@ export class RoomConnectionListener extends ConnectionListener {
   private onCreateRoom() {
     this.socket.on('create_room', () => {
       const room = new Room(this.socket.id)
+
+      this.roomRepository.save(room)
      
       this.socket.join(room.getId())
       this.socket.emit('room_id', room.getId())
@@ -44,11 +46,14 @@ export class RoomConnectionListener extends ConnectionListener {
         return
       }
 
+      room.addPlayer(this.socket.id)
+
+      this.roomRepository.save(room)
+
       this.socket.join(room.getId())
       this.socket.emit('room_id', room.getId())
       this.socket.emit('room_history', room.getMessageHistory())
 
-      // notifica TODOS na sala, incluindo quem já estava
       this.io.to(room.getId()).emit('display_players', getPlayersInRoom(this.io, room.getId()))
     })
   }
@@ -59,8 +64,19 @@ export class RoomConnectionListener extends ConnectionListener {
 
           if (!room) return
 
-          this.messageRepository.deleteByRoomId(room.getId()) 
-          this.roomRepository.deleteBySocketId(this.socket.id) 
+          room.removePlayer(this.socket.id)
+
+          if(room.getPlayers().length === 0) {
+            this.roomRepository.delete(room)
+          } else {
+            this.roomRepository.save(room)
+          }
+
+          this.io.to(room.getId()).emit(
+            'display_players',
+            getPlayersInRoom(this.io, room.getId())
+          )
+
       })
   }
 }

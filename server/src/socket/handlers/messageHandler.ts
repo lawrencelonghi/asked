@@ -23,7 +23,12 @@ export class MessageConnectionListener extends ConnectionListener {
               const room = this.roomRepository.findBySocketId(this.socket.id)
               if (!room) return
 
-              const message = new Message(data.text, this.socket.id, room.getId())
+              const message = new Message(
+                data.content, 
+                data.senderId, 
+                data.senderName,
+                data.timestamp
+              )
 
               this.messageRepository.save(message)
               room.addMessage(message)

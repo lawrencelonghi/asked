@@ -15,7 +15,7 @@ export class RoomRepository {
 
     //pega o room atraves do id de algum player
     findBySocketId(socketId: string): Room | null {
-        return this.roomList.find(room => room.getSocketId() === socketId) ?? null
+        return this.roomList.find(room => room.hasPlayer(socketId)) ?? null
     }
     
     save(room: Room): RoomRepository {
