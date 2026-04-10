@@ -15,3 +15,8 @@ export interface Message {
   senderName: string;
   timestamp: Date;
 }
+
+export interface Score {
+  number: number | null;
+  whoChoosed: Player | null
+}

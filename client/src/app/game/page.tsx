@@ -3,10 +3,11 @@ import { io, Socket} from 'socket.io-client';
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { Message, Player, Vote } from '../../../../shared/types/game'
+import { Message, Player, Score, Vote } from '../../../../shared/types/game'
 import Chat from '@/components/Chat';
 import VotingSection from '@/components/VotingSection';
 import GameSection from '@/components/GameSection';
+import ChooseNumber from '@/components/ChooseNumber';
 
 export default function Game() {
   const searchParams = useSearchParams();
@@ -22,6 +23,7 @@ export default function Game() {
   const [isVotingCompleted, setIsVotingCompleted] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [allPlayersReady, setAllPlayersReady] = useState(false);
+  const [ choosedNumber, setChoosedNumber ] = useState<number | null>(null)
 
   const router = useRouter();
 
@@ -104,6 +106,17 @@ export default function Game() {
     setIsPlayerReady(true);
   }
 
+  function handleChoosedNumber(number: number) {
+    setChoosedNumber(number)
+    const score: Score = {
+      number: number,
+      whoChoosed: {socketId: mySocketId, name: myPlayerName}
+    }
+    console.log(score);
+    
+    socketRef.current?.emit("score_choosed", score)
+  }
+
   return (
 
     // MAIN STRUCTURE
@@ -141,8 +154,12 @@ export default function Game() {
       )}
 
       {allPlayersReady && (
-        // GAME PART
-        <GameSection/>
+        // CHOOSE A NUMBER SECTION
+        <ChooseNumber
+          choosedNumber={choosedNumber}
+          isChoosingComplete={choosedNumber !== null}
+          onChoose={handleChoosedNumber}
+        />
       )}
 
 

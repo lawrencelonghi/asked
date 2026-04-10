@@ -5,6 +5,7 @@ import { Server as HttpServer } from 'http'
 import { PlayerConnetionListener } from './handlers/playerHandler.js';
 import { VoteConnectionListener } from './handlers/voteHandler.js';
 import { StartGameConnectionListener } from './handlers/startGameHandler.js';
+import { chooseNumberConnectionListener } from './handlers/chooseNumberListener.js';
 
 export class SocketConnectionService {
   io: Server
@@ -27,12 +28,14 @@ export class SocketConnectionService {
           const playerListener = new PlayerConnetionListener(this.io, socket)
           const voteListener = new VoteConnectionListener(this.io, socket)
           const startGameListener = new StartGameConnectionListener(this.io, socket)
+          const chooseNumberListener = new chooseNumberConnectionListener(this.io, socket)
 
           roomListener.listen()
           messageListener.listen()
           playerListener.listen()
           voteListener.listen()
           startGameListener.listen()
+          chooseNumberListener.listen()
       })
   }
 }

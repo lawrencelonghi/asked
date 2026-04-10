@@ -1,6 +1,5 @@
 import { Player } from "../models/player.js";
 import Room from "../models/room.js";
-import { roomList } from "../storage/storage.js";
 import { voteList } from "../storage/storage.js";
 import { Vote } from "../models/vote.js";
 
