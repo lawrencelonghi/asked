@@ -1,17 +1,12 @@
 import type { Player } from "./player.js";
 
 export class Vote {
-  player: Player
+  whoVoted: Player
+  votedFor: Player
 
-  constructor(player: Player) {
-    this.player = player
+  constructor(whoVoted: Player, votedFor: Player) {
+    this.whoVoted = whoVoted
+    this.votedFor = votedFor
   }
 
-  whoVoted() {
-    return this.player.getById()
-  }
-
-  votedFor() {
-    return this.player.getById()
-  }
 }

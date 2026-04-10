@@ -25,7 +25,7 @@ export default function VotingSection({
     <div className='flex flex-col items-center gap-20 mt-20'>
       <h2 className='text-2xl font-semibold'>WHO SHOULD PLAY NOW?</h2>
 
-      <ul className='grid grid-cols-3 gap-4'>
+      <ul className='grid grid-cols-3 gap-6'>
         {players.map(p => (
           <li
             key={p.name}
@@ -43,7 +43,7 @@ export default function VotingSection({
 
       <span>
         SELECTED PLAYER:
-        <span className='text-red-600 text-3xl font-bold tracking-wide ml-2'>
+        <span className='text-red-600 text-2xl font-bold tracking-wide ml-2'>
           {mainPlayer?.name.toUpperCase()}
         </span>
       </span>
