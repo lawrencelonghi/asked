@@ -7,12 +7,14 @@ class Room {
     private players: string[];
     private messageHistory: Message[];
     private votes: Vote[]
+    private PlayersReadyToPlay: Player[]
 
     constructor(private socketId: string) {
         this.id = this._generateId();
         this.players = [socketId];
         this.messageHistory = [];
         this.votes = []
+        this.PlayersReadyToPlay = []
     }
 
     getId() {
@@ -116,6 +118,22 @@ class Room {
         this.votes = []
     }
 
+    addPlayerReadyToPlay(player: Player) {
+        this.PlayersReadyToPlay.push(player)
+    }
+
+    allPlayersReadyToPlay(): boolean {
+        return this.players.every(socketId => 
+            this.PlayersReadyToPlay.some(p => p.socketId === socketId))
+    }
+
+    gameStarted(): boolean {
+        if(this.allPlayersReadyToPlay()){
+            return true
+        } else {
+            return false
+        }
+    }
 }
 
 export default Room;

@@ -46,6 +46,11 @@ export class RoomConnectionListener extends ConnectionListener {
         return
       }
 
+      if(room.gameStarted()) {
+        this.socket.emit('room_error', 'You are late. Game already started')
+        return
+      }
+
       room.addPlayer(this.socket.id)
 
       this.roomRepository.save(room)
