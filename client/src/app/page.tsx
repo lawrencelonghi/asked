@@ -11,8 +11,8 @@ interface Player {
 }
 
 export default function Home() {
-  const [playerName, setPlayerName] = useState('');
-  const [savedPlayer, setSavedPlayer] = useState<Player | null>(null);
+  const [ playerName, setPlayerName ] = useState('');
+  const [ savedPlayer, setSavedPlayer ] = useState<Player | null>(null);
   const [ isJoinRoomClicked, setIsJoinRoomClicked ] = useState(false)
   const [ userTypedRoom, setUserTypedRoom ] = useState('')
   const router = useRouter();

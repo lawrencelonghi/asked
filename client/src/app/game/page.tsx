@@ -1,6 +1,6 @@
 'use client'
 import { io, Socket} from 'socket.io-client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, createContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { Message, Player, Score, Vote } from '../../../../shared/types/game'
@@ -24,6 +24,7 @@ export default function Game() {
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [allPlayersReady, setAllPlayersReady] = useState(false);
   const [ choosedNumber, setChoosedNumber ] = useState<number | null>(null)
+  const [ finalScore, setFinalScore ] = useState<number | null>(null)
 
   const router = useRouter();
 
@@ -78,6 +79,10 @@ export default function Game() {
     socketRef.current.on('all_players_ready', (data: boolean) => {
       setAllPlayersReady(data);
     });
+
+    socketRef.current.on('final_score', (data: number) => {
+      setFinalScore(data)
+    })
 
     return () => {
       socketRef.current?.disconnect();
@@ -159,6 +164,7 @@ export default function Game() {
           choosedNumber={choosedNumber}
           isChoosingComplete={choosedNumber !== null}
           onChoose={handleChoosedNumber}
+          finalScore={finalScore}
         />
       )}
 

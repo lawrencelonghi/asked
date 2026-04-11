@@ -19,7 +19,24 @@ export class chooseNumberConnectionListener extends ConnectionListener {
   scoreHandler() {
     this.socket.on('score_choosed', (score: Score) => {
       console.log(score);
-      
+      const playerRoomId = this.roomRepository.findBySocketId(this.socket.id)
+
+      if (!playerRoomId) {
+          console.log("room não encontrado para socket:", this.socket.id)
+          return
+      }
+
+      playerRoomId.addScore(score)
+
+      const mainPlayer = playerRoomId.calculateMainPlayer()
+      const finalScore = playerRoomId.calculateScore()
+
+      console.log('score escolhido foi:', finalScore);
+
+      this.io
+        .to(playerRoomId.getId())
+        .except(mainPlayer?.socketId ?? '')
+        .emit('final_score', finalScore)      
     })
   }
 }

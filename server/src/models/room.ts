@@ -1,5 +1,6 @@
 import type Message from "../models/message.js"
 import type { Player } from "./player.js";
+import type { Score } from "./score.js";
 import type { Vote } from "./vote.js";
 
 class Room {
@@ -7,14 +8,16 @@ class Room {
     private players: string[];
     private messageHistory: Message[];
     private votes: Vote[]
-    private PlayersReadyToPlay: Player[]
+    private playersReadyToPlay: Player[]
+    private scores: Score[]
 
-    constructor(private socketId: string) {
+    constructor(private socketId: string,) {
         this.id = this._generateId();
         this.players = [socketId];
         this.messageHistory = [];
         this.votes = []
-        this.PlayersReadyToPlay = []
+        this.playersReadyToPlay = []
+        this.scores = []
     }
 
     getId() {
@@ -119,12 +122,12 @@ class Room {
     }
 
     addPlayerReadyToPlay(player: Player) {
-        this.PlayersReadyToPlay.push(player)
+        this.playersReadyToPlay.push(player)
     }
 
     allPlayersReadyToPlay(): boolean {
         return this.players.every(socketId => 
-            this.PlayersReadyToPlay.some(p => p.socketId === socketId))
+            this.playersReadyToPlay.some(p => p.socketId === socketId))
     }
 
     gameStarted(): boolean {
@@ -133,6 +136,32 @@ class Room {
         } else {
             return false
         }
+    }
+
+    addScore(score: Score) {
+     this.scores.push(score)
+    }
+
+
+    calculateScore(): number {
+        const numberCount = new Map<number, number>() // número -> quantidade de votos
+
+        for (const score of this.scores) {
+            const current = numberCount.get(score.number) ?? 0
+            numberCount.set(score.number, current + 1)
+        }
+
+        let finalScore: number = 0
+        let maxVotes = 0
+
+        for (const [number, votes] of numberCount.entries()) {
+            if (votes > maxVotes) {
+                maxVotes = votes
+                finalScore = number // o número mais escolhido, não a contagem
+            }
+        }
+
+        return finalScore
     }
 }
 
