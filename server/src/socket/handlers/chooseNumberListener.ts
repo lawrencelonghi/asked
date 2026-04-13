@@ -28,8 +28,8 @@ export class chooseNumberConnectionListener extends ConnectionListener {
 
       playerRoomId.addScore(score)
 
-      const mainPlayer = playerRoomId.calculateMainPlayer()
-      const finalScore = playerRoomId.calculateScore()
+      const mainPlayer = playerRoomId.getMainPlayer()
+      const finalScore = playerRoomId.getScore()
 
       console.log('score escolhido foi:', finalScore);
 

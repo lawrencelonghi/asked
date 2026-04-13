@@ -2,22 +2,18 @@ import type Message from "../models/message.js"
 import type { Player } from "./player.js";
 import type { Score } from "./score.js";
 import type { Vote } from "./vote.js";
-
+import type { Round } from "./round.js";
 class Room {
     private id: string;
-    private players: string[];
+    private players: Player[];
     private messageHistory: Message[];
-    private votes: Vote[]
-    private playersReadyToPlay: Player[]
-    private scores: Score[]
+    private rounds: Round[]
 
-    constructor(private socketId: string,) {
-        this.id = this._generateId();
-        this.players = [socketId];
+    constructor(private socketId: string) {
+        this.id = this.generateRoomId();
+        this.players = []
         this.messageHistory = [];
-        this.votes = []
-        this.playersReadyToPlay = []
-        this.scores = []
+        this.rounds = []
     }
 
     getId() {
@@ -29,7 +25,7 @@ class Room {
         return this.socketId
     }
 
-    _generateId() {
+    private generateRoomId() {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sem caracteres confusos
         const length = 12
         let id = '';
@@ -41,14 +37,14 @@ class Room {
         return id;
     }
 
-    addPlayer(socketId: string) {
-        if (!this.players.includes(socketId)) {
-        this.players.push(socketId);
+    addPlayer(player: Player) {
+        if (!this.players.some(p => p.socketId === player.socketId)) {
+        this.players.push(player);
         }
     }
 
-    removePlayer(socketId: string) {
-        this.players = this.players.filter(id => id !== socketId);
+    removePlayer(player: Player) {
+        this.players = this.players.filter(p => p.socketId !== player.socketId);
     }
 
 
@@ -57,7 +53,7 @@ class Room {
     }
 
     hasPlayer(socketId: string) {
-        return this.players.includes(socketId);
+        return this.players.some(p => p.socketId === socketId);
     }
 
 
@@ -72,97 +68,11 @@ class Room {
     getMessageHistory() {
         return this.messageHistory;
     }
-
-    getVotes() {
-        return this.votes
+    
+    getRounds() {
+        return this.rounds
     }
 
-    addVote(vote: Vote): boolean {
-        const alreadyVoted = this.votes.some(v => v.whoVoted.socketId === vote.whoVoted.socketId)
-        if(alreadyVoted) return false
-
-        this.votes.push(vote)
-        return true
-    }
-
-    allPlayersVoted(): boolean {
-        
-        return this.players.every(socketId => this.votes.some(v => v.whoVoted.socketId === socketId))
-    }
-
-    calculateMainPlayer(): Player | null {
-        const voteCount = new Map<string, { player: Player; count: number }>()
-
-        for(const vote of this.votes) {
-            const playerThatWasVotedSocketId = vote.votedFor.socketId
-            const currentVotes = voteCount.get(playerThatWasVotedSocketId)
-
-            if(currentVotes) {
-                currentVotes.count++
-            } else {
-                voteCount.set(playerThatWasVotedSocketId, {player: vote.votedFor, count: 1})
-            }
-        }
-
-        let mainPlayer: Player | null = null
-        let maxVotes = 0
-
-        for (const { player, count } of voteCount.values()) {
-            if(count > maxVotes) {
-                maxVotes = count
-                mainPlayer = player
-            }
-        }
-
-        return mainPlayer
-    }
-
-    clearVotes() {
-        this.votes = []
-    }
-
-    addPlayerReadyToPlay(player: Player) {
-        this.playersReadyToPlay.push(player)
-    }
-
-    allPlayersReadyToPlay(): boolean {
-        return this.players.every(socketId => 
-            this.playersReadyToPlay.some(p => p.socketId === socketId))
-    }
-
-    gameStarted(): boolean {
-        if(this.allPlayersReadyToPlay()){
-            return true
-        } else {
-            return false
-        }
-    }
-
-    addScore(score: Score) {
-     this.scores.push(score)
-    }
-
-
-    calculateScore(): number {
-        const numberCount = new Map<number, number>() // número -> quantidade de votos
-
-        for (const score of this.scores) {
-            const current = numberCount.get(score.number) ?? 0
-            numberCount.set(score.number, current + 1)
-        }
-
-        let finalScore: number = 0
-        let maxVotes = 0
-
-        for (const [number, votes] of numberCount.entries()) {
-            if (votes > maxVotes) {
-                maxVotes = votes
-                finalScore = number // o número mais escolhido, não a contagem
-            }
-        }
-
-        return finalScore
-    }
 }
 
 export default Room;

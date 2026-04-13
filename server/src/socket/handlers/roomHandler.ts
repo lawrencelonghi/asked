@@ -6,6 +6,7 @@ import { ConnectionListener } from "./connectionListener.js"
 import { RoomRepository } from "../../repositories/roomRepository.js"
 import { MessageRepository } from "../../repositories/messageRepository.js"
 import Room from "../../models/room.js"
+import { Round } from "../../models/round.js"
 
 
 export class RoomConnectionListener extends ConnectionListener {
@@ -27,6 +28,7 @@ export class RoomConnectionListener extends ConnectionListener {
   private onCreateRoom() {
     this.socket.on('create_room', () => {
       const room = new Room(this.socket.id)
+      const round = new Round(room)
 
       this.roomRepository.save(room)
      

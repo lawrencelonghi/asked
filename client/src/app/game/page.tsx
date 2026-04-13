@@ -1,6 +1,6 @@
 'use client'
 import { io, Socket} from 'socket.io-client';
-import { useState, useRef, useEffect, createContext } from 'react';
+import { useState, useRef, useEffect, createContext, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { Message, Player, Score, Vote } from '../../../../shared/types/game'
@@ -8,6 +8,9 @@ import Chat from '@/components/Chat';
 import VotingSection from '@/components/VotingSection';
 import GameSection from '@/components/GameSection';
 import ChooseNumber from '@/components/ChooseNumber';
+import { mainPlayerContext } from '@/contexts/mainPlayerContext';
+
+
 
 export default function Game() {
   const searchParams = useSearchParams();
@@ -24,7 +27,10 @@ export default function Game() {
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [allPlayersReady, setAllPlayersReady] = useState(false);
   const [ choosedNumber, setChoosedNumber ] = useState<number | null>(null)
+  const [ isChoosingComplete, setIsChoosingCompleted ] = useState(false)
   const [ finalScore, setFinalScore ] = useState<number | null>(null)
+  const isMainPlayer = mainPlayer?.socketId === mySocketId;
+
 
   const router = useRouter();
 
@@ -95,6 +101,10 @@ export default function Game() {
     if (mainPlayer) setIsVotingCompleted(true);
   }, [mainPlayer]);
 
+  useEffect(() => {
+    if (finalScore) setIsChoosingCompleted(true)
+  }, [finalScore]);
+
   function handleVotedPlayer(player: Player) {
     setVotedPlayer(player);
     const vote: Vote = {
@@ -158,24 +168,31 @@ export default function Game() {
       />
       )}
 
+      <mainPlayerContext.Provider value={mainPlayer}>
       {allPlayersReady && (
         // CHOOSE A NUMBER SECTION
         <ChooseNumber
           choosedNumber={choosedNumber}
-          isChoosingComplete={choosedNumber !== null}
+          isChoosingComplete={isChoosingComplete}
           onChoose={handleChoosedNumber}
           finalScore={finalScore}
+          mySocketId={mySocketId}
+        />
+      )}
+
+      {/* CHAT SECTION */}
+      {(!allPlayersReady || !isMainPlayer || isChoosingComplete) && (
+        <Chat
+          socket={socketRef.current}
+          messages={messages}
+          mySocketId={mySocketId}
+          myPlayerName={myPlayerName}
         />
       )}
 
 
-      {/* CHAT SECTION */}
-      <Chat
-        socket={socketRef.current}
-        messages={messages}
-        mySocketId={mySocketId}
-        myPlayerName={myPlayerName}
-      />
+      </mainPlayerContext.Provider>
+
     </div>
   );
 }
