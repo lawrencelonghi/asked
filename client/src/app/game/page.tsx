@@ -9,6 +9,8 @@ import VotingSection from '@/components/VotingSection';
 import GameSection from '@/components/GameSection';
 import ChooseNumber from '@/components/ChooseNumber';
 import { mainPlayerContext } from '@/contexts/mainPlayerContext';
+import { roomCreatorContext } from '@/contexts/roomCreatorContext';
+import WaitingPlayers from '@/components/WaitingPlayers';
 
 
 
@@ -24,12 +26,15 @@ export default function Game() {
   const [playerHasVoted, setPlayerHasVoted] = useState(false);
   const [mainPlayer, setMainPlayer] = useState<Player | null>(null);
   const [isVotingCompleted, setIsVotingCompleted] = useState(false);
-  const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const [allPlayersReady, setAllPlayersReady] = useState(false);
+  const [ isPlayerReady, setIsPlayerReady ] = useState(false);
+  const [ allPlayersReady, setAllPlayersReady ] = useState(false);
   const [ choosedNumber, setChoosedNumber ] = useState<number | null>(null)
   const [ isChoosingComplete, setIsChoosingCompleted ] = useState(false)
   const [ finalScore, setFinalScore ] = useState<number | null>(null)
   const isMainPlayer = mainPlayer?.socketId === mySocketId;
+  const [ isRoomCreator, setIsRoomCreator ] = useState(false);
+  const [ roomCreator, setRoomCreator ] = useState<Player | null> (null)
+  const [ isRoundStarted, setIsRoundStarted ] = useState(false)
 
 
   const router = useRouter();
@@ -47,9 +52,9 @@ export default function Game() {
 
       const roomIdFromUrl = searchParams.get('roomId');
       if (roomIdFromUrl) {
-        socketRef.current?.emit('join_room', { roomId: roomIdFromUrl });
+        socketRef.current?.emit('join_room', { roomId: roomIdFromUrl, name: nameFromUrl });
       } else {
-        socketRef.current?.emit('create_room');
+        socketRef.current?.emit('create_room', {name: nameFromUrl});
       }
     });
 
@@ -89,6 +94,11 @@ export default function Game() {
     socketRef.current.on('final_score', (data: number) => {
       setFinalScore(data)
     })
+
+    socketRef.current.on('room_creator', (creator: Player) => {
+     setRoomCreator(creator)
+     setIsRoomCreator(creator.socketId === socketRef.current?.id)
+    });
 
     return () => {
       socketRef.current?.disconnect();
@@ -135,10 +145,14 @@ export default function Game() {
   return (
 
     // MAIN STRUCTURE
+    <roomCreatorContext.Provider value={roomCreator}>
     <div className="ml-8 mr-8 mt-12 flex justify-between">
       <div className="flex flex-col gap-10">
         <h1 className="text-4xl">ASKED</h1>
         <span>Room id: {newRoomId}</span>
+        {isRoomCreator && (
+          <span>You are the room creator.</span>
+        )}
         <div>
           <span>Players:</span>
           <ul>
@@ -154,8 +168,14 @@ export default function Game() {
         </div>
       </div>
 
+      
+
+       {!isRoundStarted && (
+        <WaitingPlayers players={players} roomCreator={roomCreator} isCreator={isRoomCreator} />
+       )}
+
       {/* MAIN GAME SECTION */}
-      {!allPlayersReady && (
+      {!allPlayersReady || isRoundStarted && (
       // VOTING PART
       <VotingSection
         players={players}
@@ -169,7 +189,7 @@ export default function Game() {
       )}
 
       <mainPlayerContext.Provider value={mainPlayer}>
-      {allPlayersReady && (
+      {allPlayersReady || isRoundStarted && (
         // CHOOSE A NUMBER SECTION
         <ChooseNumber
           choosedNumber={choosedNumber}
@@ -194,5 +214,6 @@ export default function Game() {
       </mainPlayerContext.Provider>
 
     </div>
+  </roomCreatorContext.Provider>
   );
 }

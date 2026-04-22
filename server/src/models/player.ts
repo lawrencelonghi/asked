@@ -14,4 +14,5 @@ export class Player {
     getById() {
         return this.socketId
     } 
+
 }

@@ -8,19 +8,21 @@ class Room {
     private players: Player[];
     private messageHistory: Message[];
     private rounds: Round[]
+    private roomCreatorSocketId: string;
 
     constructor(private socketId: string) {
         this.id = this.generateRoomId();
         this.players = []
         this.messageHistory = [];
         this.rounds = []
+        this.roomCreatorSocketId = socketId
     }
 
     getId() {
         return this.id
     }
 
-
+    // retorna a 
     getSocketId(): string {
         return this.socketId
     }
@@ -37,14 +39,30 @@ class Room {
         return id;
     }
 
+    getRoomCreatorSocketId(): string {
+        return this.roomCreatorSocketId;
+    }
+
+    getRoomCreatorPlayer(): Player | undefined {
+        return this.players.find(p => p.socketId === this.roomCreatorSocketId)
+    }
+
+    isRoomCreator(socketId: string): boolean {
+        return this.roomCreatorSocketId === socketId;
+    }
+
     addPlayer(player: Player) {
         if (!this.players.some(p => p.socketId === player.socketId)) {
         this.players.push(player);
         }
     }
 
-    removePlayer(player: Player) {
-        this.players = this.players.filter(p => p.socketId !== player.socketId);
+    setPlayerAsRoomCreator(): boolean {
+        return true
+    }
+
+    removePlayer(playerSockeId: string) {
+        this.players = this.players.filter(p => p.socketId !== playerSockeId);
     }
 
 
@@ -67,6 +85,10 @@ class Room {
 
     getMessageHistory() {
         return this.messageHistory;
+    }
+
+    startRound(round: Round) {
+        return this.rounds.push(round)
     }
     
     getRounds() {

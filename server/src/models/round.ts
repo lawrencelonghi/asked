@@ -6,6 +6,7 @@ import Room from "./room.js";
 export class Round {
   private id: string
   private room: Room
+  private roundRoomId: string
   private votes: Vote[]
   private playersReadyToPlay: Player[]
   private mainPlayer: Player | null
@@ -15,7 +16,7 @@ export class Round {
   constructor(room: Room) {
     this.id = this.generateRoundId()
     this.room = room
-   
+    this.roundRoomId = room.getId()
     this.votes = []
     this.playersReadyToPlay = []
     this.mainPlayer = this.getMainPlayer()
@@ -36,6 +37,10 @@ export class Round {
 
    getId() {
     return this.id
+   }
+
+   getRoom() {
+    return this.room
    }
 
    getVotes() {
@@ -91,7 +96,7 @@ export class Round {
   allPlayersReadyToPlay(): boolean {
       return this.room.getPlayers().every(p => 
           this.playersReadyToPlay.some(ready => ready.socketId === p.socketId))
-  }
+    }
 
     gameStarted(): boolean {
         return this.allPlayersReadyToPlay()
@@ -99,7 +104,7 @@ export class Round {
     }
 
     addScore(score: Score) {
-     this.scores.push(score)
+        this.scores.push(score)
     }
 
 
