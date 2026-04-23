@@ -56,7 +56,7 @@ private onJoinRoom() {
             return
         }
 
-        const round = this.roundRepository.findByRoom(room)
+        const round = this.roundRepository.findActiveByRoom(room)
         if (round?.gameStarted()) {
             this.socket.emit('room_error', 'You are late. Game already started')
             return

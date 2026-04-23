@@ -1,11 +1,12 @@
 import { Server, Socket } from 'socket.io';
-import { RoomConnectionListener } from './handlers/roomHandler.js';
-import { MessageConnectionListener } from './handlers/messageHandler.js';
+import { RoomConnectionListener } from './listeners/roomListener.js';
+import { MessageConnectionListener } from './listeners/messageListener.js';
 import { Server as HttpServer } from 'http'
-import { PlayerConnetionListener } from './handlers/playerHandler.js';
-import { VoteConnectionListener } from './handlers/voteHandler.js';
-import { StartGameConnectionListener } from './handlers/startGameHandler.js';
-import { chooseNumberConnectionListener } from './handlers/chooseNumberListener.js';
+import { PlayerConnetionListener } from './listeners/playerListener.js';
+import { VoteConnectionListener } from './listeners/voteListener.js';
+import { StartGameConnectionListener } from './listeners/startGameListener.js';
+import { chooseNumberConnectionListener } from './listeners/chooseNumberListener.js';
+import { RoundListenerConnection } from './listeners/roundListener.js';
 
 export class SocketConnectionService {
   io: Server
@@ -29,8 +30,10 @@ export class SocketConnectionService {
           const voteListener = new VoteConnectionListener(this.io, socket)
           const startGameListener = new StartGameConnectionListener(this.io, socket)
           const chooseNumberListener = new chooseNumberConnectionListener(this.io, socket)
+          const roundListener = new RoundListenerConnection(this.io, socket)
 
           roomListener.listen()
+          roundListener.listen()
           messageListener.listen()
           playerListener.listen()
           voteListener.listen()

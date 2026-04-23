@@ -10,7 +10,7 @@ import GameSection from '@/components/GameSection';
 import ChooseNumber from '@/components/ChooseNumber';
 import { mainPlayerContext } from '@/contexts/mainPlayerContext';
 import { roomCreatorContext } from '@/contexts/roomCreatorContext';
-import WaitingPlayers from '@/components/WaitingPlayers';
+import Lobby from '@/components/Lobby';
 
 
 
@@ -30,11 +30,14 @@ export default function Game() {
   const [ allPlayersReady, setAllPlayersReady ] = useState(false);
   const [ choosedNumber, setChoosedNumber ] = useState<number | null>(null)
   const [ isChoosingComplete, setIsChoosingCompleted ] = useState(false)
-  const [ finalScore, setFinalScore ] = useState<number | null>(null)
+  const [ roundScore, setRoundScore ] = useState<number | null>(null)
   const isMainPlayer = mainPlayer?.socketId === mySocketId;
   const [ isRoomCreator, setIsRoomCreator ] = useState(false);
   const [ roomCreator, setRoomCreator ] = useState<Player | null> (null)
   const [ isRoundStarted, setIsRoundStarted ] = useState(false)
+  const [ questionsStarted, setQuestionsStarted] = useState(false)
+  const [ mainPlayerQuestion, setMainPlayerQuestion] = useState('')
+  
 
 
   const router = useRouter();
@@ -91,14 +94,25 @@ export default function Game() {
       setAllPlayersReady(data);
     });
 
-    socketRef.current.on('final_score', (data: number) => {
-      setFinalScore(data)
+    socketRef.current.on('round_score', (data: number) => {
+      setRoundScore(data)
+    })
+
+    socketRef.current.on('questions_started', (data) => {
+      setQuestionsStarted(data)
+      setMessages([])
     })
 
     socketRef.current.on('room_creator', (creator: Player) => {
      setRoomCreator(creator)
      setIsRoomCreator(creator.socketId === socketRef.current?.id)
     });
+
+    socketRef.current.on('round_started', (data) => {
+      setIsRoundStarted(data)
+      console.log('round comecoooou');
+      
+    })
 
     return () => {
       socketRef.current?.disconnect();
@@ -112,8 +126,8 @@ export default function Game() {
   }, [mainPlayer]);
 
   useEffect(() => {
-    if (finalScore) setIsChoosingCompleted(true)
-  }, [finalScore]);
+    if (roundScore) setIsChoosingCompleted(true)
+  }, [roundScore]);
 
   function handleVotedPlayer(player: Player) {
     setVotedPlayer(player);
@@ -140,6 +154,18 @@ export default function Game() {
     console.log(score);
     
     socketRef.current?.emit("score_choosed", score)
+  }
+
+  function handleStartRound() {
+    socketRef.current?.emit('start_round', isRoundStarted)
+  }
+
+  //questions section
+  function handleMainPlayerQuestion(e: React.FormEvent) {
+    e.preventDefault();
+    if(isMainPlayer && mainPlayerQuestion.trim()) {
+      socketRef.current?.emit('mainPlayer_question', mainPlayerQuestion)
+    }
   }
 
   return (
@@ -171,11 +197,17 @@ export default function Game() {
       
 
        {!isRoundStarted && (
-        <WaitingPlayers players={players} roomCreator={roomCreator} isCreator={isRoomCreator} />
+        <Lobby
+          players={players}
+          roomCreator={roomCreator} 
+          isCreator={isRoomCreator} 
+          mySocketId={mySocketId}
+          onStartRound={handleStartRound}
+        />
        )}
 
       {/* MAIN GAME SECTION */}
-      {!allPlayersReady || isRoundStarted && (
+      {isRoundStarted && !allPlayersReady && !questionsStarted && (
       // VOTING PART
       <VotingSection
         players={players}
@@ -189,19 +221,32 @@ export default function Game() {
       )}
 
       <mainPlayerContext.Provider value={mainPlayer}>
-      {allPlayersReady || isRoundStarted && (
+      {isRoundStarted && allPlayersReady && !questionsStarted && (
         // CHOOSE A NUMBER SECTION
         <ChooseNumber
           choosedNumber={choosedNumber}
           isChoosingComplete={isChoosingComplete}
           onChoose={handleChoosedNumber}
-          finalScore={finalScore}
+          roundScore={roundScore}
           mySocketId={mySocketId}
         />
       )}
 
+      {isRoundStarted && questionsStarted && (
+        <GameSection  
+          players={players}
+          mainPlayer={mainPlayer}
+          roundScore={roundScore}
+          mainPlayerQuestion={}
+          playerAnswer={}
+          finalGuess={}
+          onQuestionChange={setMainPlayerQuestion}
+    
+        />
+      )}
+
       {/* CHAT SECTION */}
-      {(!allPlayersReady || !isMainPlayer || isChoosingComplete) && (
+      {!(isMainPlayer && allPlayersReady && !questionsStarted) && (
         <Chat
           socket={socketRef.current}
           messages={messages}
@@ -209,7 +254,6 @@ export default function Game() {
           myPlayerName={myPlayerName}
         />
       )}
-
 
       </mainPlayerContext.Provider>
 

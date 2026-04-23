@@ -5,7 +5,7 @@ import Room from "./room.js";
 
 export class Round {
   private id: string
-  private room: Room
+  private room: Room 
   private roundRoomId: string
   private votes: Vote[]
   private playersReadyToPlay: Player[]
@@ -13,7 +13,7 @@ export class Round {
   private scores: Score[]
 
 
-  constructor(room: Room) {
+  constructor(room: Room ) {
     this.id = this.generateRoundId()
     this.room = room
     this.roundRoomId = room.getId()
@@ -116,16 +116,16 @@ export class Round {
             numberCount.set(score.number, current + 1)
         }
 
-        let finalScore: number = 0
+        let roundScore: number = 0
         let maxVotes = 0
 
         for (const [number, votes] of numberCount.entries()) {
             if (votes > maxVotes) {
                 maxVotes = votes
-                finalScore = number 
+                roundScore = number 
             }
         }
 
-        return finalScore
+        return roundScore
     }
 }

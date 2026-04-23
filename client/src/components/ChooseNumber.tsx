@@ -7,12 +7,12 @@ interface ChooseNumberSectionProps {
   choosedNumber: number | null;
   isChoosingComplete: boolean;
   onChoose: (number: number) => void;
-  finalScore: number | null
+  roundScore: number | null
   mySocketId: string;
 }
 
 export default function ChooseNumber ({ choosedNumber, isChoosingComplete, onChoose,
-   finalScore,mySocketId }: ChooseNumberSectionProps) {
+   roundScore,mySocketId }: ChooseNumberSectionProps) {
   const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const mainPlayer = useContext(mainPlayerContext)
   const isMainPlayer = mainPlayer?.socketId === mySocketId;
@@ -50,7 +50,7 @@ export default function ChooseNumber ({ choosedNumber, isChoosingComplete, onCho
             </li>
           </ul>
 
-              <span>{finalScore}</span>
+              <span>{roundScore}</span>
 
       </div>)}
       {/* main player paused interface */}
