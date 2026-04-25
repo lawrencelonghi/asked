@@ -11,6 +11,7 @@ export class Round {
   private playersReadyToPlay: Player[]
   private mainPlayer: Player | null
   private scores: Score[]
+  private answeredPlayers: Player[] = []
 
 
   constructor(room: Room ) {
@@ -127,5 +128,20 @@ export class Round {
         }
 
         return roundScore
+    }
+
+    getNextPlayerToAnswer(players: Player[], mainPlayer: Player): Player | null {
+        const allowed = players.filter(
+            //elimina o mainPlayer
+            p => p.socketId !== mainPlayer.socketId && 
+            //remove quem ja respondeu
+            !this.answeredPlayers.some(ap => ap.socketId === p.socketId) 
+        )
+
+        return allowed[0] ?? null
+    }
+
+    markPlayerAsAnswered(player: Player) {
+        this.answeredPlayers.push(player)
     }
 }

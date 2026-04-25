@@ -6,12 +6,11 @@ import Button from './Button';
 interface GameSectionProps {
   players: Player[]
   mainPlayer: Player | null
+  mySocketId: string | null
   playerThatAnswers: Player | null
   mainPlayerQuestion: string | null
-  playerAnswer: string | null
   roundScore: number | null
-  finalGuess: number | null
-  handleMainPlayerQuestion: () => void
+  handleMainPlayerQuestion: (e: React.FormEvent) => void
   onQuestionChange: (value: string) => void
 }
 
@@ -19,11 +18,10 @@ interface GameSectionProps {
 const GameSection = ({
   players, 
   mainPlayer, 
+  mySocketId,
   playerThatAnswers,
   mainPlayerQuestion, 
-  playerAnswer, 
   roundScore, 
-  finalGuess,
   handleMainPlayerQuestion,
   onQuestionChange}: GameSectionProps) => {
 
@@ -31,19 +29,23 @@ const GameSection = ({
 
     <div className='flex flex-col items-center gap-20 mt-20'>
 
-      {mainPlayer && (
+      {mySocketId === mainPlayer?.socketId && (
         <div className='flex flex-col items-center gap-12'>
           <div>
             <h2 className='text-xl font-semibold'>
-              You ask {playerThatAnswers?.socketId} a question.
+              You ask {playerThatAnswers?.name} a question.
             </h2>
           </div>
 
-          <form onSubmit={handleMainPlayerQuestion}>
-            <input type="text" 
+          <form onSubmit={handleMainPlayerQuestion} className='flex flex-col gap-12 items-center'>
+            <textarea rows={1}
                     placeholder='ask your question' 
-                    className='border-b text-xl text-center focus:outline-none'
-                    onChange={(e) => onQuestionChange(e.target.value)}
+                    className='border-b text-xl text-center focus:outline-none resize-none overflow-hidden w-96'
+                    onChange={(e) =>{
+                      e.target.style.height = 'auto'
+                      e.target.style.height = e.target.scrollHeight + 'px'
+                      onQuestionChange(e.target.value)}
+                    }
               />
 
               <Button text='ENTER'/>
@@ -53,11 +55,9 @@ const GameSection = ({
       )}
 
 
-    {playerThatAnswers && (
       <div>
-
+      {playerThatAnswers?.name} deve responder
       </div>
-    )}
 
     </div>
   )

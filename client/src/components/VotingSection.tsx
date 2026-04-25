@@ -31,19 +31,19 @@ export default function VotingSection({
             key={p.name}
             className={
               votedPlayer?.socketId === p.socketId
-                ? 'border text-center bg-red-600 max-w-30 text-md px-4 py-2'
+                ? 'border text-center text-black bg-green-500 max-w-30 text-md px-4 py-2'
                 : 'border text-center max-w-30 text-md px-4 py-2 hover:bg-white cursor-pointer hover:text-black'
             }
             onClick={() => !playerHasVoted && onVote(p)}
           >
-            {p.name}
+            {p.name.toUpperCase()}
           </li>
         ))}
       </ul>
 
       <span>
         SELECTED PLAYER:
-        <span className='text-red-600 text-2xl font-bold tracking-wide ml-2'>
+        <span className='text-green-500 text-2xl font-bold tracking-wide ml-2'>
           {mainPlayer?.name.toUpperCase()}
         </span>
       </span>

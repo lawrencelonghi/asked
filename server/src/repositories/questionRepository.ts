@@ -1,20 +1,15 @@
-import { Player } from "../models/player.js";
-import Room from "../models/room.js";
-import { Round } from "../models/round.js";
-
+import { Round } from "../models/round.js"
+import { Player } from "../models/player.js"
+import { Question } from "../models/question.js"
+import { questionList } from "../storage/storage.js"
 
 export class QuestionRepository {
-  player: Player
-  room: Room
-  round: Round
-
-  constructor(player: Player, room: Room, round: Round) {
-    this.player = player
-    this.room = room
-    this.round = round
+  save(content: string, round: Round, askedTo: Player) {
+    const question = new Question(content, round, askedTo)
+    questionList.push(question)
   }
 
-  save(message: string) {
-    
+  findByRound(round: Round): Question[] {
+    return questionList.filter(q => q.round === round)
   }
 }

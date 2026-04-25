@@ -3,7 +3,7 @@ import { useContext, useState } from 'react';
 import { io, Socket} from 'socket.io-client';
 import { mainPlayerContext } from '@/contexts/mainPlayerContext';
 
-interface ChooseNumberSectionProps {
+interface ChosseScoreSectionProps {
   choosedNumber: number | null;
   isChoosingComplete: boolean;
   onChoose: (number: number) => void;
@@ -11,8 +11,8 @@ interface ChooseNumberSectionProps {
   mySocketId: string;
 }
 
-export default function ChooseNumber ({ choosedNumber, isChoosingComplete, onChoose,
-   roundScore,mySocketId }: ChooseNumberSectionProps) {
+export default function ChooseScore ({ choosedNumber, isChoosingComplete, onChoose,
+   roundScore,mySocketId }: ChosseScoreSectionProps) {
   const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const mainPlayer = useContext(mainPlayerContext)
   const isMainPlayer = mainPlayer?.socketId === mySocketId;

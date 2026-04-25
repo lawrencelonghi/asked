@@ -7,6 +7,7 @@ import { VoteConnectionListener } from './listeners/voteListener.js';
 import { StartGameConnectionListener } from './listeners/startGameListener.js';
 import { chooseNumberConnectionListener } from './listeners/chooseNumberListener.js';
 import { RoundListenerConnection } from './listeners/roundListener.js';
+import { QuestionAnswerConnectionListener } from './listeners/questionsListener.js';
 
 export class SocketConnectionService {
   io: Server
@@ -31,6 +32,7 @@ export class SocketConnectionService {
           const startGameListener = new StartGameConnectionListener(this.io, socket)
           const chooseNumberListener = new chooseNumberConnectionListener(this.io, socket)
           const roundListener = new RoundListenerConnection(this.io, socket)
+          const questionListener = new QuestionAnswerConnectionListener(this.io, socket)
 
           roomListener.listen()
           roundListener.listen()
@@ -39,6 +41,7 @@ export class SocketConnectionService {
           voteListener.listen()
           startGameListener.listen()
           chooseNumberListener.listen()
+          questionListener.listen()
       })
   }
 }

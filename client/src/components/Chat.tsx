@@ -81,7 +81,8 @@ const Chat = ({ socket, messages, mySocketId, myPlayerName }: ChatProps) => {
           className="w-full focus:outline-none focus:ring-0 p-2 pl-4"
         />
         <button type="submit" className="mr-4 hover:opacity-70 transition-opacity">
-          <Send className="cursor-pointer" />
+          <Send className="cursor-pointer"
+          color='#2b9c41' />
         </button>
       </form>
     </div>

@@ -3,11 +3,12 @@ import { io, Socket} from 'socket.io-client';
 import { useState, useRef, useEffect, createContext, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { Clipboard, ClipboardCheck } from 'lucide-react';
 import { Message, Player, Score, Vote } from '../../../../shared/types/game'
 import Chat from '@/components/Chat';
 import VotingSection from '@/components/VotingSection';
 import GameSection from '@/components/GameSection';
-import ChooseNumber from '@/components/ChooseNumber';
+import ChooseScore from '@/components/ChosseScore';
 import { mainPlayerContext } from '@/contexts/mainPlayerContext';
 import { roomCreatorContext } from '@/contexts/roomCreatorContext';
 import Lobby from '@/components/Lobby';
@@ -30,6 +31,7 @@ export default function Game() {
   const [ allPlayersReady, setAllPlayersReady ] = useState(false);
   const [ choosedNumber, setChoosedNumber ] = useState<number | null>(null)
   const [ isChoosingComplete, setIsChoosingCompleted ] = useState(false)
+  const [ isRoundScoreChoosen, setIsRoundScoreChoosen ] = useState(false)
   const [ roundScore, setRoundScore ] = useState<number | null>(null)
   const isMainPlayer = mainPlayer?.socketId === mySocketId;
   const [ isRoomCreator, setIsRoomCreator ] = useState(false);
@@ -37,6 +39,10 @@ export default function Game() {
   const [ isRoundStarted, setIsRoundStarted ] = useState(false)
   const [ questionsStarted, setQuestionsStarted] = useState(false)
   const [ mainPlayerQuestion, setMainPlayerQuestion] = useState('')
+  const [ playerHasAnswered, setPlayerHasAnswered] = useState(false)
+  const [ playerThatAnswers, setPlayerThatAnswers ] = useState<Player | null> (null)
+  const [ roomIdCopied, setRoomIdCopied ] = useState(false)
+  const [ isClipboardHovered, setIsClipboardHovered ] = useState(false)
   
 
 
@@ -53,7 +59,7 @@ export default function Game() {
       const id = socketRef.current?.id || '';
       setMySocketId(id);
 
-      const roomIdFromUrl = searchParams.get('roomId');
+      const roomIdFromUrl = searchParams.get('roomId')?.trim();
       if (roomIdFromUrl) {
         socketRef.current?.emit('join_room', { roomId: roomIdFromUrl, name: nameFromUrl });
       } else {
@@ -168,6 +174,16 @@ export default function Game() {
     }
   }
 
+  //funcao de clipboard para o roomId
+  async function handleCopy() {
+    await navigator.clipboard.writeText(newRoomId)
+    setRoomIdCopied(true)
+  }
+
+  function displayClipboard() {
+    setIsClipboardHovered(true)
+  }
+
   return (
 
     // MAIN STRUCTURE
@@ -175,7 +191,19 @@ export default function Game() {
     <div className="ml-8 mr-8 mt-12 flex justify-between">
       <div className="flex flex-col gap-10">
         <h1 className="text-4xl">ASKED</h1>
+      <div
+        className="flex items-center gap-2 cursor-pointer select-none w-fit"
+        onClick={handleCopy}
+        onMouseEnter={() => setIsClipboardHovered(true)}
+        onMouseLeave={() => setIsClipboardHovered(false)}
+      >
         <span>Room id: {newRoomId}</span>
+        {isClipboardHovered && (
+          roomIdCopied
+            ? <ClipboardCheck size={16} className="text-green-500" />
+            : <Clipboard size={16} />
+        )}
+      </div>
         {isRoomCreator && (
           <span>You are the room creator.</span>
         )}
@@ -223,7 +251,7 @@ export default function Game() {
       <mainPlayerContext.Provider value={mainPlayer}>
       {isRoundStarted && allPlayersReady && !questionsStarted && (
         // CHOOSE A NUMBER SECTION
-        <ChooseNumber
+        <ChooseScore
           choosedNumber={choosedNumber}
           isChoosingComplete={isChoosingComplete}
           onChoose={handleChoosedNumber}
@@ -237,10 +265,11 @@ export default function Game() {
           players={players}
           mainPlayer={mainPlayer}
           roundScore={roundScore}
-          mainPlayerQuestion={}
-          playerAnswer={}
-          finalGuess={}
+          mySocketId={mySocketId}
+          mainPlayerQuestion={mainPlayerQuestion}
           onQuestionChange={setMainPlayerQuestion}
+          playerThatAnswers={playerThatAnswers}
+          handleMainPlayerQuestion={handleMainPlayerQuestion}
     
         />
       )}
