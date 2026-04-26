@@ -40,7 +40,7 @@ export default function Game() {
   const [ questionsStarted, setQuestionsStarted] = useState(false)
   const [ mainPlayerQuestion, setMainPlayerQuestion] = useState('')
   const [ playerHasAnswered, setPlayerHasAnswered] = useState(false)
-  const [ playerThatAnswers, setPlayerThatAnswers ] = useState<Player | null> (null)
+  const [ nextPlayerThatAnswers, setNextPlayerThatAnswers ] = useState<Player | null> (null)
   const [ roomIdCopied, setRoomIdCopied ] = useState(false)
   const [ isClipboardHovered, setIsClipboardHovered ] = useState(false)
   
@@ -117,6 +117,12 @@ export default function Game() {
     socketRef.current.on('round_started', (data) => {
       setIsRoundStarted(data)
       console.log('round comecoooou');
+      
+    })
+
+    socketRef.current.on('next_player_to_answer', (data) => {     
+      setNextPlayerThatAnswers(data)
+      console.log('next player to answer is:', data);
       
     })
 
@@ -268,7 +274,7 @@ export default function Game() {
           mySocketId={mySocketId}
           mainPlayerQuestion={mainPlayerQuestion}
           onQuestionChange={setMainPlayerQuestion}
-          playerThatAnswers={playerThatAnswers}
+          nextPlayerThatAnswers={nextPlayerThatAnswers}
           handleMainPlayerQuestion={handleMainPlayerQuestion}
     
         />

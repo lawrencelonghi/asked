@@ -7,7 +7,7 @@ interface GameSectionProps {
   players: Player[]
   mainPlayer: Player | null
   mySocketId: string | null
-  playerThatAnswers: Player | null
+  nextPlayerThatAnswers: Player | null
   mainPlayerQuestion: string | null
   roundScore: number | null
   handleMainPlayerQuestion: (e: React.FormEvent) => void
@@ -19,7 +19,7 @@ const GameSection = ({
   players, 
   mainPlayer, 
   mySocketId,
-  playerThatAnswers,
+  nextPlayerThatAnswers,
   mainPlayerQuestion, 
   roundScore, 
   handleMainPlayerQuestion,
@@ -33,7 +33,7 @@ const GameSection = ({
         <div className='flex flex-col items-center gap-12'>
           <div>
             <h2 className='text-xl font-semibold'>
-              You ask {playerThatAnswers?.name} a question.
+              You ask {nextPlayerThatAnswers?.name} a question.
             </h2>
           </div>
 
@@ -55,8 +55,10 @@ const GameSection = ({
       )}
 
 
-      <div>
-      {playerThatAnswers?.name} deve responder
+      <div className='flex flex-col gap-10'>
+        <h2>{mainPlayer?.name} will ask {nextPlayerThatAnswers?.name} a question!</h2>
+        <span>{mainPlayer?.name}'s question is:</span>
+        <span>{mainPlayerQuestion}</span>
       </div>
 
     </div>

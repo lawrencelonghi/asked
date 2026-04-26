@@ -49,11 +49,16 @@ export class QuestionAnswerConnectionListener extends ConnectionListener {
       }
 
       this.questionRepository.save(data, round, nextPlayerToAnswer)
+
+      this.io.to(room.getId()).emit('next_player_to_answer', nextPlayerToAnswer)
+
       round.markPlayerAsAnswered(nextPlayerToAnswer)
+
+      this.roundRepository.save(round)
 
       console.log('a pergunta foi:', data, 'e quem tem que responder é:', nextPlayerToAnswer);
 
-      this.io.to(room.getId()).emit('received_question', data)
+      
     })
   }
 

@@ -40,20 +40,30 @@ export class chooseNumberConnectionListener extends ConnectionListener {
 
       const mainPlayer = round.getMainPlayer()
 
-      const roundScore = round.getScore()
+      const allPlayersChossen = round.allPlayersChossen()
+      
+      if(allPlayersChossen) {
+        const roundScore = round.getScore()
+        const mainPlayer = round.getMainPlayer()
+        const players = room.getPlayers()
 
-      console.log('score escolhido foi:', roundScore);
+        if(mainPlayer) {
+          const firstToAnswer = round.getNextPlayerToAnswer(players, mainPlayer)
+          this.io.to(room.getId()).emit('next_player_to_answer', firstToAnswer)
+        }
 
-      this.messageRepository.deleteByRoomId(room.getId())
 
-      this.io
-        .to(room.getId())
-        .except(mainPlayer?.socketId ?? '')
-        .emit('round_score', roundScore)  
-        
-      this.io
+        this.messageRepository.deleteByRoomId(room.getId())
+
+        this.io
+          .to(room.getId())
+          .except(mainPlayer?.socketId ?? '')
+          .emit('round_score', roundScore)  
+
+        this.io
         .to(room.getId())
         .emit('questions_started', true)
-      })
+      }
+    })
   }
 }

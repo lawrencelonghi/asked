@@ -20,7 +20,7 @@ export class Round {
     this.roundRoomId = room.getId()
     this.votes = []
     this.playersReadyToPlay = []
-    this.mainPlayer = this.getMainPlayer()
+    this.mainPlayer = null
     this.scores = []
   }
 
@@ -56,9 +56,9 @@ export class Round {
         return true
     }
 
-  allPlayersVoted(): boolean {
-      return this.room.getPlayers().every(p => this.votes.some(v => v.whoVoted.socketId === p.socketId));
-  }
+    allPlayersVoted(): boolean {
+        return this.room.getPlayers().every(p => this.votes.some(v => v.whoVoted.socketId === p.socketId));
+    }
     getMainPlayer(): Player | null {
         const voteCount = new Map<string, { player: Player; count: number }>()
 
@@ -94,7 +94,7 @@ export class Round {
         this.playersReadyToPlay.push(player)
     }
 
-  allPlayersReadyToPlay(): boolean {
+    allPlayersReadyToPlay(): boolean {
       return this.room.getPlayers().every(p => 
           this.playersReadyToPlay.some(ready => ready.socketId === p.socketId))
     }
@@ -108,6 +108,11 @@ export class Round {
         this.scores.push(score)
     }
 
+    allPlayersChossen() {
+        const currentMainPlayer = this.getMainPlayer()
+        const playersThatChoose = this.room.getPlayers().filter(p => p.socketId !== currentMainPlayer?.socketId)
+        return playersThatChoose.every(p => this.scores.some(s => s.whoChoosed.socketId === p.socketId))
+    }
 
     getScore(): number {
         const numberCount = new Map<number, number>() 
