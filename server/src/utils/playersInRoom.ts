@@ -1,5 +1,5 @@
 import { Server } from 'socket.io'
-import { players } from '../socket/handlers/states.js'
+import { players } from '../socket/listeners/states.js'
 
 export function getPlayersInRoom(io: Server, roomId: string) {
     return players.filter(p => {

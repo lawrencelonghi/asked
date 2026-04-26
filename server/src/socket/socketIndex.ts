@@ -1,32 +1,47 @@
-import { Server } from 'socket.io';
-import { server } from '../server.js';
-import { generateRoomId } from '../utils/roomsHash.js';
-import { roomHandlers } from './handlers/roomHandler.js';
-import { messageHandlers } from './handlers/messageHandler.js';
-import { playerHandlers } from './handlers/playerHandler..js';
-import { voteHandler } from './handlers/voteHandler.js';
-import { startGame } from './handlers/startGameHandler.js';
-import { socketRoomMap } from './handlers/states.js';
+import { Server, Socket } from 'socket.io';
+import { RoomConnectionListener } from './listeners/roomListener.js';
+import { MessageConnectionListener } from './listeners/messageListener.js';
+import { Server as HttpServer } from 'http'
+import { PlayerConnetionListener } from './listeners/playerListener.js';
+import { VoteConnectionListener } from './listeners/voteListener.js';
+import { StartGameConnectionListener } from './listeners/startGameListener.js';
+import { chooseNumberConnectionListener } from './listeners/chooseNumberListener.js';
+import { RoundListenerConnection } from './listeners/roundListener.js';
+import { QuestionAnswerConnectionListener } from './listeners/questionsListener.js';
 
-function socketService() {
+export class SocketConnectionService {
+  io: Server
 
-  const io = new Server(server, {
-    cors: {
-      origin: 'http://localhost:3000',
-      methods: ['GET', 'POST']
-    }
-  })
+  constructor(server: HttpServer) {
+    this.io = new Server(server, {
+      cors: {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST']
+      }
+    })
+  }
 
-// funcao principal 
-  io.on("connection", (socket) => {
-    console.log('player connected', socket.id)
+  listen() {
+      this.io.on('connection', (socket: Socket) => {
+          console.log('player connected', socket.id)
 
-    roomHandlers(socket, io)
-    messageHandlers(socket, io)
-    playerHandlers(socket, io)
-    voteHandler(socket, io)
-    startGame(socket, io)
-  })
+          const roomListener = new RoomConnectionListener(this.io, socket)
+          const messageListener = new MessageConnectionListener(this.io, socket)
+          const playerListener = new PlayerConnetionListener(this.io, socket)
+          const voteListener = new VoteConnectionListener(this.io, socket)
+          const startGameListener = new StartGameConnectionListener(this.io, socket)
+          const chooseNumberListener = new chooseNumberConnectionListener(this.io, socket)
+          const roundListener = new RoundListenerConnection(this.io, socket)
+          const questionListener = new QuestionAnswerConnectionListener(this.io, socket)
+
+          roomListener.listen()
+          roundListener.listen()
+          messageListener.listen()
+          playerListener.listen()
+          voteListener.listen()
+          startGameListener.listen()
+          chooseNumberListener.listen()
+          questionListener.listen()
+      })
+  }
 }
-
-export default socketService

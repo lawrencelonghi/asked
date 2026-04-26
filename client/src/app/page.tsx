@@ -11,34 +11,19 @@ interface Player {
 }
 
 export default function Home() {
-  const [playerName, setPlayerName] = useState('');
-  const [savedPlayer, setSavedPlayer] = useState<Player | null>(null);
+  const [ playerName, setPlayerName ] = useState('');
+  const [ savedPlayer, setSavedPlayer ] = useState<Player | null>(null);
   const [ isJoinRoomClicked, setIsJoinRoomClicked ] = useState(false)
   const [ userTypedRoom, setUserTypedRoom ] = useState('')
-  const socketRef = useRef<Socket | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    socketRef.current = io('http://localhost:3001')
 
-    return () => {
-      if(socketRef.current){
-        socketRef.current.disconnect()
-      }
-    }
-  }, [])
   
 
   function handlePlayerName(e: React.FormEvent) {
     e.preventDefault();
-    if (playerName.trim() && socketRef.current) {
-      const newPlayer: Player = {
-        id: Date.now(),
-        name: playerName
-      };
-      
-      socketRef.current.emit('send_player', newPlayer)
-      setSavedPlayer(newPlayer)
+    if (playerName.trim()) {
+      setSavedPlayer({ id: Date.now(), name: playerName });
       setPlayerName('');
     }
   }

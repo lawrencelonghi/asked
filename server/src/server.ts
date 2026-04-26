@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv'
 import http from "http";
 import cors from 'cors';
-import socketService from './socket/socketIndex.js';
+import { SocketConnectionService } from './socket/socketIndex.js';
 
 
 dotenv.config()
@@ -18,7 +18,9 @@ app.use(cors({
 
 export const server = http.createServer(app)
 
-socketService()
+const socketConnection = new SocketConnectionService(server)
+
+socketConnection.listen()
 
 
 server.listen(PORT, () => {

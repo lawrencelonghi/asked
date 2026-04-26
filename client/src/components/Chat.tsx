@@ -4,7 +4,7 @@ import type { Socket } from 'socket.io-client';
 import { useState, useRef, useEffect } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 import { Send } from 'lucide-react';
-import type { Message } from '../../../types';
+import type { Message } from '../../../shared/types/game'
 
 interface ChatProps {
   socket: Socket | null;
@@ -36,9 +36,9 @@ const Chat = ({ socket, messages, mySocketId, myPlayerName }: ChatProps) => {
     e.preventDefault();
     if (message.trim() && socket && myPlayerName) {
       const newMessage: Message = {
-        senderSocketID: mySocketId,
-        text: message,
-        timestamp: Date.now(),
+        senderId: mySocketId,
+        content: message,
+        timestamp: new Date(),
         senderName: myPlayerName
       };
       socket.emit("send_message", newMessage);
@@ -50,11 +50,11 @@ const Chat = ({ socket, messages, mySocketId, myPlayerName }: ChatProps) => {
     <div className="w-[30vw] h-[80vh] border flex flex-col justify-between relative">
       <div className="flex-1 overflow-auto p-4">
         {messages.map((msg) => (
-          <div key={`${msg.senderSocketID}-${msg.timestamp}`} className="flex gap-4 mb-2">
-            <span className={msg.senderSocketID === mySocketId ? 'font-semibold text-orange-500' : 'font-semibold'}>
+          <div key={`${msg.senderId}-${msg.timestamp}`} className="flex gap-4 mb-2">
+            <span className={msg.senderId === mySocketId ? 'font-semibold text-orange-500' : 'font-semibold'}>
               {msg.senderName}:
             </span>
-            <p>{msg.text}</p>
+            <p>{msg.content}</p>
           </div>
         ))}
       </div>
@@ -81,7 +81,8 @@ const Chat = ({ socket, messages, mySocketId, myPlayerName }: ChatProps) => {
           className="w-full focus:outline-none focus:ring-0 p-2 pl-4"
         />
         <button type="submit" className="mr-4 hover:opacity-70 transition-opacity">
-          <Send className="cursor-pointer" />
+          <Send className="cursor-pointer"
+          color='#2b9c41' />
         </button>
       </form>
     </div>

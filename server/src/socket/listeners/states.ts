@@ -1,4 +1,6 @@
-import { type Player, type Message, type Vote } from "../../../../types.js"
+import { Vote } from "../../models/vote.js"
+import type {Player} from "../../models/player.js"
+import type Message from "../../models/message.js"
 
 export const players: Player[] = []
 
