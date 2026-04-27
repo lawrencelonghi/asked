@@ -1,6 +1,5 @@
 import { generateRoomId } from "../../utils/roomsHash.js"
 import { Server, Socket } from 'socket.io'
-import { socketRoomMap, roomMessagesMap } from './states.js'
 import { getPlayersInRoom } from "../../utils/playersInRoom.js"
 import { ConnectionListener } from "./connectionListener.js"
 import { RoomRepository } from "../../repositories/roomRepository.js"
@@ -57,7 +56,7 @@ private onJoinRoom() {
         }
 
         const round = this.roundRepository.findActiveByRoom(room)
-        if (round?.gameStarted()) {
+        if (round) {
             this.socket.emit('room_error', 'You are late. Game already started')
             return
         }

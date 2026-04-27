@@ -1,3 +1,4 @@
+import type { Answer } from "./answer.js";
 import type { Player } from "./player.js";
 import type { Round } from "./round.js";
 

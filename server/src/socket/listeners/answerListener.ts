@@ -8,61 +8,48 @@ import { Server, Socket } from 'socket.io'
 import Room from "../../models/room.js";
 import type { Question } from "../../models/question.js";
 import { QuestionRepository } from "../../repositories/questionRepository.js";
+import { AnswerRepository } from "../../repositories/answerRepository.js";
 
-export class QuestionAnswerConnectionListener extends ConnectionListener {
+export class AnswerListenerConnection extends ConnectionListener {
   private roundRepository: RoundRepository
   private roomRepository: RoomRepository
   private playerRepository: PlayerRepository
   private questionRepository: QuestionRepository
+  private answerRepository: AnswerRepository
 
-  constructor(io: Server, socket: Socket) {
+    constructor(io: Server, socket: Socket) {
     super(io, socket)
     this.roundRepository = new RoundRepository()
     this.roomRepository =  new RoomRepository()
     this.playerRepository = new PlayerRepository()
     this.questionRepository = new QuestionRepository()
+    this.answerRepository = new AnswerRepository()
   }
 
   listen() {
-    this.handleQuestion()
     this.handleAnswer()
   }
 
-  handleQuestion() {
-    this.socket.on('mainPlayer_question', (data) => {
-      const mainPlayerQuestion = data
-      
+  handleAnswer() {
+    this.socket.on('player_answer', (answer) => {
+
+      const answeredBy = this.playerRepository.findById(this.socket.id)
+      if(!answeredBy) return
+
       const room = this.roomRepository.findBySocketId(this.socket.id)
       if(!room) return
 
       const round = this.roundRepository.findActiveByRoom(room)
       if(!round) return
 
-      const players = this.playerRepository.getPlayersByRoom(room)
-      const mainPlayer = round?.getMainPlayer()
-      if(!mainPlayer) return
+      const question = this.questionRepository.findLast()
+      if(!question) return
 
-      const nextPlayerToAnswer = round.getNextPlayerToAnswer(players, mainPlayer)
-      if(!nextPlayerToAnswer) {
-        return console.log('a rodada acabou');
-      }
+      this.answerRepository.save(answer, round, answeredBy, question)
 
-      this.questionRepository.save(data, round, nextPlayerToAnswer)
+      this.io.to(room.getId()).emit('player_answer', answer)
 
-      this.io.to(room.getId()).emit('next_player_to_answer', nextPlayerToAnswer)
-      this.io.to(room.getId()).emit('main_player_question', mainPlayerQuestion)
-
-      round.markPlayerAsAnswered(nextPlayerToAnswer)
-
-      this.roundRepository.save(round)
-
-      console.log('a pergunta foi:', mainPlayerQuestion, 'e quem tem que responder é:', nextPlayerToAnswer);
-
-      
     })
   }
 
-  handleAnswer() {
-
-  }
 }

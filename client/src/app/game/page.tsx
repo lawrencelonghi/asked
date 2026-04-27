@@ -39,10 +39,13 @@ export default function Game() {
   const [ isRoundStarted, setIsRoundStarted ] = useState(false)
   const [ questionsStarted, setQuestionsStarted] = useState(false)
   const [ mainPlayerQuestion, setMainPlayerQuestion] = useState('')
+  const [questionInput, setQuestionInput] = useState('')           
   const [ playerHasAnswered, setPlayerHasAnswered] = useState(false)
   const [ nextPlayerThatAnswers, setNextPlayerThatAnswers ] = useState<Player | null> (null)
   const [ roomIdCopied, setRoomIdCopied ] = useState(false)
   const [ isClipboardHovered, setIsClipboardHovered ] = useState(false)
+  const [ playerAnswer, setPlayerAnswer ] = useState('')
+  const [ answerInput, setAnswerInput ] = useState('')
   
 
 
@@ -100,8 +103,8 @@ export default function Game() {
       setAllPlayersReady(data);
     });
 
-    socketRef.current.on('round_score', (data: number) => {
-      setRoundScore(data)
+    socketRef.current.on('round_score', (score: number) => {
+      setRoundScore(score)
     })
 
     socketRef.current.on('questions_started', (data) => {
@@ -120,9 +123,13 @@ export default function Game() {
       
     })
 
-    socketRef.current.on('next_player_to_answer', (data) => {     
-      setNextPlayerThatAnswers(data)
-      console.log('next player to answer is:', data);
+    socketRef.current.on('main_player_question', (question) => {
+      setMainPlayerQuestion(question)
+    })
+
+    socketRef.current.on('next_player_to_answer', (player) => {     
+      setNextPlayerThatAnswers(player)
+      console.log('next player to answer is:', player);
       
     })
 
@@ -175,8 +182,20 @@ export default function Game() {
   //questions section
   function handleMainPlayerQuestion(e: React.FormEvent) {
     e.preventDefault();
-    if(isMainPlayer && mainPlayerQuestion.trim()) {
-      socketRef.current?.emit('mainPlayer_question', mainPlayerQuestion)
+    if (isMainPlayer && questionInput.trim()) {
+      socketRef.current?.emit('mainPlayer_question', questionInput)
+      setMainPlayerQuestion(questionInput)
+      setQuestionInput('')  // ← limpa o input imediatamente
+    }
+  }
+
+  //answer section
+  function handlePlayerAnswer(e: React.FormEvent) {
+    e.preventDefault()
+    if(!isMainPlayer && answerInput.trim()) {
+      socketRef.current?.emit('player_answer', answerInput)
+      setPlayerAnswer(answerInput)
+      setAnswerInput('')
     }
   }
 
@@ -273,9 +292,14 @@ export default function Game() {
           roundScore={roundScore}
           mySocketId={mySocketId}
           mainPlayerQuestion={mainPlayerQuestion}
-          onQuestionChange={setMainPlayerQuestion}
+          questionInput={questionInput}
+          onQuestionChange={setQuestionInput}
           nextPlayerThatAnswers={nextPlayerThatAnswers}
           handleMainPlayerQuestion={handleMainPlayerQuestion}
+          playerAnswer={playerAnswer}
+          handlePlayerAnswer={handlePlayerAnswer}
+          onAnswerChange={setAnswerInput}
+          answerInput={answerInput}
     
         />
       )}
