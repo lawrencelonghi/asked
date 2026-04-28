@@ -1,15 +1,11 @@
-import { Round } from "../../models/round.js";
-import { MessageRepository } from "../../repositories/messageRepository.js";
 import { RoomRepository } from "../../repositories/roomRepository.js";
 import { RoundRepository } from "../../repositories/roundRepository.js";
 import { PlayerRepository } from "../../repositories/playerRepository.js"
 import { ConnectionListener } from "./connectionListener.js";
 import { Server, Socket } from 'socket.io'
-import Room from "../../models/room.js";
-import type { Question } from "../../models/question.js";
 import { QuestionRepository } from "../../repositories/questionRepository.js";
 
-export class QuestionAnswerConnectionListener extends ConnectionListener {
+export class QuestionConnectionListener extends ConnectionListener {
   private roundRepository: RoundRepository
   private roomRepository: RoomRepository
   private playerRepository: PlayerRepository
@@ -25,7 +21,6 @@ export class QuestionAnswerConnectionListener extends ConnectionListener {
 
   listen() {
     this.handleQuestion()
-    this.handleAnswer()
   }
 
   handleQuestion() {
@@ -60,9 +55,5 @@ export class QuestionAnswerConnectionListener extends ConnectionListener {
 
       
     })
-  }
-
-  handleAnswer() {
-
   }
 }

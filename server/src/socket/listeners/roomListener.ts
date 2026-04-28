@@ -1,11 +1,8 @@
-import { generateRoomId } from "../../utils/roomsHash.js"
 import { Server, Socket } from 'socket.io'
-import { getPlayersInRoom } from "../../utils/playersInRoom.js"
 import { ConnectionListener } from "./connectionListener.js"
 import { RoomRepository } from "../../repositories/roomRepository.js"
 import { MessageRepository } from "../../repositories/messageRepository.js"
 import Room from "../../models/room.js"
-import { Round } from "../../models/round.js"
 import { RoundRepository } from "../../repositories/roundRepository.js"
 import { Player } from "../../models/player.js"
 
@@ -90,7 +87,7 @@ private onJoinRoom() {
 
           this.io.to(room.getId()).emit(
             'display_players',
-            getPlayersInRoom(this.io, room.getId())
+            room.getPlayers()
           )
 
       })

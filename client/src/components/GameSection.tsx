@@ -74,9 +74,12 @@ const GameSection = ({
       {mySocketId !== mainPlayer?.socketId && (
         <div className='flex flex-col text-center'>
           <div className='flex flex-col gap-14'>
-            <h2 className='text-xl font-semibold'>
-              {mainPlayer?.name} will ask {nextPlayerThatAnswers?.name} a question!
-            </h2>
+
+            {!mainPlayerQuestion && (
+              <h2 className='text-xl font-semibold'>
+                {mainPlayer?.name} will ask {nextPlayerThatAnswers?.name} a question!
+              </h2>
+            )}
 
             {mainPlayerQuestion && (
               <div className='flex flex-col gap-20'>
@@ -86,11 +89,6 @@ const GameSection = ({
                 </div>
 
         <div className='flex flex-col items-center gap-12'>
-          <div>
-            <h2 className='text-xl font-semibold'>
-              You ask {nextPlayerThatAnswers?.name} a question.
-            </h2>
-          </div>
 
           <form onSubmit={handlePlayerAnswer} className='flex flex-col gap-12 items-center'>
             <textarea 
@@ -106,7 +104,7 @@ const GameSection = ({
               />
 
               <Button text='ENTER'/>
-              {mainPlayerQuestion && (
+              {playerAnswer && (
                 <span className='text-green-500 text-lg'>Answer sent!</span>
               )}
         

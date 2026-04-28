@@ -1,7 +1,5 @@
 import type Message from "../models/message.js"
 import type { Player } from "./player.js";
-import type { Score } from "./score.js";
-import type { Vote } from "./vote.js";
 import type { Round } from "./round.js";
 class Room {
     private id: string;

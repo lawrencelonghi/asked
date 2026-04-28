@@ -1,7 +1,6 @@
 import { type Server, type Socket } from 'socket.io'
 import { ConnectionListener } from './connectionListener.js'
 import { RoomRepository } from '../../repositories/roomRepository.js'
-import { getPlayersInRoom } from '../../utils/playersInRoom.js'
 import { playerList } from '../../storage/storage.js'
 
 
@@ -26,7 +25,7 @@ export class PlayerConnetionListener extends ConnectionListener {
           const room = this.roomRepository.findBySocketId(this.socket.id)
           if (!room) return
 
-          this.io.to(room.getId()).emit('display_players', getPlayersInRoom(this.io, room.getId()))
+          this.io.to(room.getId()).emit('display_players', room.getPlayers())
           
       })
   }
@@ -41,7 +40,7 @@ export class PlayerConnetionListener extends ConnectionListener {
         if (!room) return
 
         this.roomRepository.deleteBySocketId(this.socket.id)
-        this.io.to(room.getId()).emit('display_players', getPlayersInRoom(this.io, room.getId()))
+        this.io.to(room.getId()).emit('display_players', room.getPlayers())
     })
   }
 }

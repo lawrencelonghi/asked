@@ -1,16 +1,12 @@
-import { Round } from "../../models/round.js";
-import { MessageRepository } from "../../repositories/messageRepository.js";
 import { RoomRepository } from "../../repositories/roomRepository.js";
 import { RoundRepository } from "../../repositories/roundRepository.js";
 import { PlayerRepository } from "../../repositories/playerRepository.js"
 import { ConnectionListener } from "./connectionListener.js";
 import { Server, Socket } from 'socket.io'
-import Room from "../../models/room.js";
-import type { Question } from "../../models/question.js";
 import { QuestionRepository } from "../../repositories/questionRepository.js";
 import { AnswerRepository } from "../../repositories/answerRepository.js";
 
-export class AnswerListenerConnection extends ConnectionListener {
+export class AnswerConnectionListener extends ConnectionListener {
   private roundRepository: RoundRepository
   private roomRepository: RoomRepository
   private playerRepository: PlayerRepository
@@ -42,13 +38,21 @@ export class AnswerListenerConnection extends ConnectionListener {
       const round = this.roundRepository.findActiveByRoom(room)
       if(!round) return
 
-      const question = this.questionRepository.findLast()
+      const question = this.questionRepository.findByPlayerAndRound(answeredBy, round)
       if(!question) return
 
-      this.answerRepository.save(answer, round, answeredBy, question)
+      const savedAnswer = this.answerRepository.save(answer, round, answeredBy, question)
+      //conecta a resposta a pergunta
+      question.answer = savedAnswer
+
+      round.markPlayerAsAnswered(answeredBy)
+  
+      
+      this.roundRepository.save(round)
 
       this.io.to(room.getId()).emit('player_answer', answer)
 
+      console.log('player marcado como JA RESPONDEU e a resposta foi:', savedAnswer);
     })
   }
 
