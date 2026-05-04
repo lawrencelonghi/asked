@@ -2,6 +2,9 @@ import type { Player } from "./player.js";
 import type { Score } from "./score.js";
 import type { Vote } from "./vote.js";
 import Room from "./room.js";
+import type { Question } from "./question.js";
+import type { Answer } from "./answer.js";
+import { QuestionAndAnswer } from './questionAndAnswer.js'
 
 export class Round {
   private id: string
@@ -12,6 +15,8 @@ export class Round {
   private mainPlayer: Player | null
   private scores: Score[]
   private answeredPlayers: Player[] = []
+  private qaList: QuestionAndAnswer[]
+  private currentQAIndex: number = 0
 
 
   constructor(room: Room ) {
@@ -22,6 +27,7 @@ export class Round {
     this.playersReadyToPlay = []
     this.mainPlayer = null
     this.scores = []
+    this.qaList = []
   }
 
     private generateRoundId() {
@@ -135,15 +141,35 @@ export class Round {
         return roundScore
     }
 
-    getNextPlayerToAnswer(players: Player[], mainPlayer: Player): Player | null {
-        const allowed = players.filter(
-            //elimina o mainPlayer
-            p => p.socketId !== mainPlayer.socketId && 
-            //remove quem ja respondeu
-            !this.answeredPlayers.some(ap => ap.socketId === p.socketId) 
-        )
+    startQA(askedTo: Player) {
+      this.qaList.push(new QuestionAndAnswer(askedTo))
+    }
 
-        return allowed[0] ?? null
+    setQuestion(question: Question) {
+        const currentQA = this.qaList[this.currentQAIndex]
+        if(currentQA) currentQA.question = question
+    }
+
+    setAnswer(answer: Answer) {
+        const currentQA = this.qaList[this.currentQAIndex]
+        if(currentQA) {
+            currentQA.answer = answer
+            this.currentQAIndex++
+        }
+        
+    }
+
+    getCurrentQA() {
+        return this.qaList[this.currentQAIndex] ?? null
+    }
+
+    getNextPlayerToAnswer(players: Player[], mainPlayer: Player): Player | null {
+        const answeredIds = this.qaList.map(qa => qa.askedTo.socketId)
+
+        return players.find(
+            p => p.socketId !== mainPlayer.socketId &&
+            !answeredIds.includes(p.socketId)
+        ) ?? null
     }
 
     markPlayerAsAnswered(player: Player) {

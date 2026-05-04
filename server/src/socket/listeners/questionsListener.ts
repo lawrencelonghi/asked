@@ -42,12 +42,13 @@ export class QuestionConnectionListener extends ConnectionListener {
         return console.log('a rodada acabou');
       }
 
-      this.questionRepository.save(data, round, nextPlayerToAnswer)
+      //inicia par pergunta/resposta indicando quem deve responder
+      round.startQA(nextPlayerToAnswer)
+
+      round.setQuestion(mainPlayerQuestion)
 
       this.io.to(room.getId()).emit('next_player_to_answer', nextPlayerToAnswer)
       this.io.to(room.getId()).emit('main_player_question', mainPlayerQuestion)
-
-      round.markPlayerAsAnswered(nextPlayerToAnswer)
 
       this.roundRepository.save(round)
 

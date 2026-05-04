@@ -19,32 +19,17 @@ export default function Game() {
   const searchParams = useSearchParams()
   const playerName = searchParams.get('playerName') ?? ''
 
-  // socket
-  const { socketRef, mySocketId } = useSocket()
+  const roomIdFromUrl = searchParams.get('roomId')?.trim()
 
-  // join/create room on socket connect
-  useEffect(() => {
-    const socket = socketRef.current
-    if (!socket) return
-
-    socket.on('connect', () => {
-      const roomId = searchParams.get('roomId')?.trim()
-      if (roomId) {
-        socket.emit('join_room', { roomId, name: playerName })
-      } else {
-        socket.emit('create_room', { name: playerName })
-      }
-    })
-
-    return () => { socket.off('connect') }
-  }, [socketRef, searchParams, playerName])
+  // socket: connect, join/create room e room_id tratados internamente
+  const { socketRef, mySocketId, roomId } = useSocket({ playerName, roomIdFromUrl })
 
   // hooks
-  const { roomId, roomCreator, isRoomCreator } = useRoom(socketRef.current, playerName)
+  const { roomCreator, isRoomCreator } = useRoom(socketRef.current)
   const {
     messages, players, mainPlayer, allPlayersReady,
     roundScore, isRoundStarted, questionsStarted,
-    mainPlayerQuestion, nextPlayerThatAnswers,
+    mainPlayerQuestion, nextPlayerToAnswer, playerAnswer
   } = useGameState(socketRef.current)
   const clipboard = useClipboard()
   const [votedPlayer, setVotedPlayer] = useState<Player | null>(null)
@@ -55,7 +40,6 @@ export default function Game() {
   const [isChoosingComplete, setIsChoosingCompleted] = useState(false)
   const [questionInput, setQuestionInput] = useState('')
   const [answerInput, setAnswerInput] = useState('')
-  const [playerAnswer, setPlayerAnswer] = useState('')
 
   const isMainPlayer = mainPlayer?.socketId === mySocketId
 
@@ -103,7 +87,6 @@ export default function Game() {
     e.preventDefault()
     if (!isMainPlayer && answerInput.trim()) {
       socketRef.current?.emit('player_answer', answerInput)
-      setPlayerAnswer(answerInput)
       setAnswerInput('')
     }
   }
@@ -193,7 +176,7 @@ export default function Game() {
               mainPlayerQuestion={mainPlayerQuestion}
               questionInput={questionInput}
               onQuestionChange={setQuestionInput}
-              nextPlayerThatAnswers={nextPlayerThatAnswers}
+              nextPlayerToAnswer={nextPlayerToAnswer}
               handleMainPlayerQuestion={handleMainPlayerQuestion}
               playerAnswer={playerAnswer}
               handlePlayerAnswer={handlePlayerAnswer}

@@ -5,6 +5,7 @@ import { ConnectionListener } from "./connectionListener.js";
 import { Server, Socket } from 'socket.io'
 import { QuestionRepository } from "../../repositories/questionRepository.js";
 import { AnswerRepository } from "../../repositories/answerRepository.js";
+import { Answer } from "../../models/answer.js";
 
 export class AnswerConnectionListener extends ConnectionListener {
   private roundRepository: RoundRepository
@@ -29,30 +30,27 @@ export class AnswerConnectionListener extends ConnectionListener {
   handleAnswer() {
     this.socket.on('player_answer', (answer) => {
 
-      const answeredBy = this.playerRepository.findById(this.socket.id)
-      if(!answeredBy) return
-
       const room = this.roomRepository.findBySocketId(this.socket.id)
-      if(!room) return
+      if(!room) return 
+      
+      const answeredBy = room.getPlayerBySocketId(this.socket.id)
+      if(!answeredBy) return 
 
       const round = this.roundRepository.findActiveByRoom(room)
-      if(!round) return
+      if(!round) return 
 
-      const question = this.questionRepository.findByPlayerAndRound(answeredBy, round)
-      if(!question) return
+      const currentQA = round.getCurrentQA()
+      if(!currentQA) return
 
-      const savedAnswer = this.answerRepository.save(answer, round, answeredBy, question)
-      //conecta a resposta a pergunta
-      question.answer = savedAnswer
 
-      round.markPlayerAsAnswered(answeredBy)
+      const savedAnswer = new Answer(answer, round, answeredBy, currentQA.question!)
+
+      round.setAnswer(savedAnswer)
   
-      
       this.roundRepository.save(round)
 
       this.io.to(room.getId()).emit('player_answer', answer)
 
-      console.log('player marcado como JA RESPONDEU e a resposta foi:', savedAnswer);
     })
   }
 

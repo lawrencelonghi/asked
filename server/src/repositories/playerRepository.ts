@@ -12,8 +12,8 @@ export class PlayerRepository {
     this.roomList = roomList
   }
 
-  findById(id: string): Player | null {
-    return this.playerList.find(player => player.socketId === id) ?? null 
+  findBySocketId(socketId: string): Player | null {
+    return this.playerList.find(player => player.socketId === socketId) ?? null 
   }
 
   getPlayersByRoom(room: Room): Player[] {

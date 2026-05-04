@@ -3,19 +3,13 @@ import { useRouter } from 'next/navigation'
 import { Socket } from 'socket.io-client'
 import { Player } from '../../../shared/types/game'
 
-export function useRoom(socket: Socket | null, playerName: string) {
+export function useRoom(socket: Socket | null) {
   const router = useRouter()
-  const [roomId, setRoomId] = useState('')
   const [roomCreator, setRoomCreator] = useState<Player | null>(null)
   const [isRoomCreator, setIsRoomCreator] = useState(false)
 
   useEffect(() => {
     if (!socket) return
-
-    socket.on('room_id', (data: string) => {
-      setRoomId(data)
-      socket.emit('send_player', { name: playerName })
-    })
 
     socket.on('room_creator', (creator: Player) => {
       setRoomCreator(creator)
@@ -28,11 +22,10 @@ export function useRoom(socket: Socket | null, playerName: string) {
     })
 
     return () => {
-      socket.off('room_id')
       socket.off('room_creator')
       socket.off('room_error')
     }
-  }, [socket, playerName, router])
+  }, [socket, router])
 
-  return { roomId, roomCreator, isRoomCreator }
+  return { roomCreator, isRoomCreator }
 }

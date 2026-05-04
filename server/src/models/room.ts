@@ -68,6 +68,10 @@ class Room {
         return this.players;
     }
 
+    getPlayerBySocketId(socketId: string) {
+        return this.players.find(player => player.socketId === socketId)
+    }
+
     hasPlayer(socketId: string) {
         return this.players.some(p => p.socketId === socketId);
     }

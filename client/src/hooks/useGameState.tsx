@@ -3,15 +3,16 @@ import { Socket } from 'socket.io-client'
 import { Message, Player } from '../../../shared/types/game'
 
 export function useGameState(socket: Socket | null) {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [players, setPlayers] = useState<Player[]>([])
-  const [mainPlayer, setMainPlayer] = useState<Player | null>(null)
-  const [allPlayersReady, setAllPlayersReady] = useState(false)
-  const [roundScore, setRoundScore] = useState<number | null>(null)
-  const [isRoundStarted, setIsRoundStarted] = useState(false)
-  const [questionsStarted, setQuestionsStarted] = useState(false)
-  const [mainPlayerQuestion, setMainPlayerQuestion] = useState('')
-  const [nextPlayerThatAnswers, setNextPlayerThatAnswers] = useState<Player | null>(null)
+  const [ messages, setMessages ] = useState<Message[]>([])
+  const [ players, setPlayers ] = useState<Player[]>([ ])
+  const [ mainPlayer, setMainPlayer ] = useState<Player | null>(null)
+  const [ allPlayersReady, setAllPlayersReady ] = useState(false)
+  const [ roundScore, setRoundScore ] = useState<number | null>(null)
+  const [ isRoundStarted, setIsRoundStarted ] = useState(false)
+  const [ questionsStarted, setQuestionsStarted ] = useState(false)
+  const [ mainPlayerQuestion, setMainPlayerQuestion ] = useState('')
+  const [ nextPlayerToAnswer, setNextPlayerToAnswer ] = useState<Player | null>(null)
+  const [ playerAnswer, setPlayerAnswer ] = useState('')
 
   useEffect(() => {
     if (!socket) return
@@ -28,13 +29,14 @@ export function useGameState(socket: Socket | null) {
       setMessages([])
     })
     socket.on('main_player_question', (question: string) => setMainPlayerQuestion(question))
-    socket.on('next_player_to_answer', (player: Player) => setNextPlayerThatAnswers(player))
+    socket.on('next_player_to_answer', (player: Player) => setNextPlayerToAnswer(player))
+    socket.on('player_answer', (answer: string) => setPlayerAnswer(answer))
 
     return () => {
       const events = [
         'room_history', 'receive_message', 'display_players', 'voting_result',
         'all_players_ready', 'round_score', 'round_started', 'questions_started',
-        'main_player_question', 'next_player_to_answer',
+        'main_player_question', 'next_player_to_answer', 'player_answer'
       ]
       events.forEach(event => socket.off(event))
     }
@@ -49,6 +51,7 @@ export function useGameState(socket: Socket | null) {
     isRoundStarted,
     questionsStarted,
     mainPlayerQuestion,
-    nextPlayerThatAnswers,
+    nextPlayerToAnswer,
+    playerAnswer
   }
 }
