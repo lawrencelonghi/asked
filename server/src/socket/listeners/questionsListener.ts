@@ -1,16 +1,11 @@
-import { Round } from "../../models/round.js";
-import { MessageRepository } from "../../repositories/messageRepository.js";
 import { RoomRepository } from "../../repositories/roomRepository.js";
 import { RoundRepository } from "../../repositories/roundRepository.js";
 import { PlayerRepository } from "../../repositories/playerRepository.js"
 import { ConnectionListener } from "./connectionListener.js";
 import { Server, Socket } from 'socket.io'
-import Room from "../../models/room.js";
-import type { Question } from "../../models/question.js";
 import { QuestionRepository } from "../../repositories/questionRepository.js";
-import { players } from "./states.js";
 
-export class QuestionAnswerConnectionListener extends ConnectionListener {
+export class QuestionConnectionListener extends ConnectionListener {
   private roundRepository: RoundRepository
   private roomRepository: RoomRepository
   private playerRepository: PlayerRepository
@@ -26,7 +21,6 @@ export class QuestionAnswerConnectionListener extends ConnectionListener {
 
   listen() {
     this.handleQuestion()
-    this.handleAnswer()
   }
 
   handleQuestion() {
@@ -48,21 +42,19 @@ export class QuestionAnswerConnectionListener extends ConnectionListener {
         return console.log('a rodada acabou');
       }
 
-      this.questionRepository.save(data, round, nextPlayerToAnswer)
+      //inicia par pergunta/resposta indicando quem deve responder
+      round.startQA(nextPlayerToAnswer)
+
+      round.setQuestion(mainPlayerQuestion)
 
       this.io.to(room.getId()).emit('next_player_to_answer', nextPlayerToAnswer)
-
-      round.markPlayerAsAnswered(nextPlayerToAnswer)
+      this.io.to(room.getId()).emit('main_player_question', mainPlayerQuestion)
 
       this.roundRepository.save(round)
 
-      console.log('a pergunta foi:', data, 'e quem tem que responder é:', nextPlayerToAnswer);
+      console.log('a pergunta foi:', mainPlayerQuestion, 'e quem tem que responder é:', nextPlayerToAnswer);
 
       
     })
-  }
-
-  handleAnswer() {
-
   }
 }

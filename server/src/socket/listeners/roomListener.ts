@@ -1,12 +1,8 @@
-import { generateRoomId } from "../../utils/roomsHash.js"
 import { Server, Socket } from 'socket.io'
-import { socketRoomMap, roomMessagesMap } from './states.js'
-import { getPlayersInRoom } from "../../utils/playersInRoom.js"
 import { ConnectionListener } from "./connectionListener.js"
 import { RoomRepository } from "../../repositories/roomRepository.js"
 import { MessageRepository } from "../../repositories/messageRepository.js"
 import Room from "../../models/room.js"
-import { Round } from "../../models/round.js"
 import { RoundRepository } from "../../repositories/roundRepository.js"
 import { Player } from "../../models/player.js"
 
@@ -57,7 +53,7 @@ private onJoinRoom() {
         }
 
         const round = this.roundRepository.findActiveByRoom(room)
-        if (round?.gameStarted()) {
+        if (round) {
             this.socket.emit('room_error', 'You are late. Game already started')
             return
         }
@@ -91,7 +87,7 @@ private onJoinRoom() {
 
           this.io.to(room.getId()).emit(
             'display_players',
-            getPlayersInRoom(this.io, room.getId())
+            room.getPlayers()
           )
 
       })

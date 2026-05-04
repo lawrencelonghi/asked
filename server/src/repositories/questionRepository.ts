@@ -12,4 +12,10 @@ export class QuestionRepository {
   findByRound(round: Round): Question[] {
     return questionList.filter(q => q.round === round)
   }
+
+  findByPlayerAndRound(player: Player, round: Round): Question | undefined {
+    return questionList.find(
+      q => q.askedTo.socketId === player.socketId && q.round === round
+    )
+  }
 }

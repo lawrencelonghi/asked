@@ -3,7 +3,6 @@ import type { Vote } from '../../models/vote.js';
 import { ConnectionListener } from './connectionListener.js';
 import { RoomRepository } from '../../repositories/roomRepository.js';
 import { RoundRepository } from '../../repositories/roundRepository.js';
-import { Round } from '../../models/round.js';
 
 export class VoteConnectionListener extends ConnectionListener {
 

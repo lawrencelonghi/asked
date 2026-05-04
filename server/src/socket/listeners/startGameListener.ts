@@ -2,8 +2,6 @@ import { type Server, type Socket } from 'socket.io'
 import { ConnectionListener } from './connectionListener.js'
 import { RoomRepository } from '../../repositories/roomRepository.js'
 import { RoundRepository } from '../../repositories/roundRepository.js'
-import { Round } from '../../models/round.js'
-
 
 export class StartGameConnectionListener extends ConnectionListener {
 

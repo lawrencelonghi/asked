@@ -1,298 +1,202 @@
 'use client'
-import { io, Socket} from 'socket.io-client';
-import { useState, useRef, useEffect, createContext, useContext } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useRouter } from 'next/navigation';
-import { Clipboard, ClipboardCheck } from 'lucide-react';
-import { Message, Player, Score, Vote } from '../../../../shared/types/game'
-import Chat from '@/components/Chat';
-import VotingSection from '@/components/VotingSection';
-import GameSection from '@/components/GameSection';
-import ChooseScore from '@/components/ChosseScore';
-import { mainPlayerContext } from '@/contexts/mainPlayerContext';
-import { roomCreatorContext } from '@/contexts/roomCreatorContext';
-import Lobby from '@/components/Lobby';
-
-
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Clipboard, ClipboardCheck } from 'lucide-react'
+import { Player, Score, Vote } from '../../../../shared/types/game'
+import Chat from '@/components/Chat'
+import VotingSection from '@/components/VotingSection'
+import GameSection from '@/components/GameSection'
+import ChooseScore from '@/components/ChosseScore'
+import Lobby from '@/components/Lobby'
+import { mainPlayerContext } from '@/contexts/mainPlayerContext'
+import { roomCreatorContext } from '@/contexts/roomCreatorContext'
+import { useSocket } from '@/hooks/useSocket'
+import { useRoom } from '@/hooks/useRoom'
+import { useGameState } from '@/hooks/useGameState'
+import { useClipboard } from '@/hooks/useClipboard'
 
 export default function Game() {
-  const searchParams = useSearchParams();
-  const socketRef = useRef<Socket | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [mySocketId, setMySocketId] = useState('');
-  const [myPlayerName, setMyPlayerName] = useState('');
-  const [newRoomId, setNewRoomId] = useState('');
-  const [votedPlayer, setVotedPlayer] = useState<Player | null>(null);
-  const [playerHasVoted, setPlayerHasVoted] = useState(false);
-  const [mainPlayer, setMainPlayer] = useState<Player | null>(null);
-  const [isVotingCompleted, setIsVotingCompleted] = useState(false);
-  const [ isPlayerReady, setIsPlayerReady ] = useState(false);
-  const [ allPlayersReady, setAllPlayersReady ] = useState(false);
-  const [ choosedNumber, setChoosedNumber ] = useState<number | null>(null)
-  const [ isChoosingComplete, setIsChoosingCompleted ] = useState(false)
-  const [ isRoundScoreChoosen, setIsRoundScoreChoosen ] = useState(false)
-  const [ roundScore, setRoundScore ] = useState<number | null>(null)
-  const isMainPlayer = mainPlayer?.socketId === mySocketId;
-  const [ isRoomCreator, setIsRoomCreator ] = useState(false);
-  const [ roomCreator, setRoomCreator ] = useState<Player | null> (null)
-  const [ isRoundStarted, setIsRoundStarted ] = useState(false)
-  const [ questionsStarted, setQuestionsStarted] = useState(false)
-  const [ mainPlayerQuestion, setMainPlayerQuestion] = useState('')
-  const [ playerHasAnswered, setPlayerHasAnswered] = useState(false)
-  const [ nextPlayerThatAnswers, setNextPlayerThatAnswers ] = useState<Player | null> (null)
-  const [ roomIdCopied, setRoomIdCopied ] = useState(false)
-  const [ isClipboardHovered, setIsClipboardHovered ] = useState(false)
-  
+  const searchParams = useSearchParams()
+  const playerName = searchParams.get('playerName') ?? ''
 
+  const roomIdFromUrl = searchParams.get('roomId')?.trim()
 
-  const router = useRouter();
+  // socket: connect, join/create room e room_id tratados internamente
+  const { socketRef, mySocketId, roomId } = useSocket({ playerName, roomIdFromUrl })
 
-  useEffect(() => {
-    const nameFromUrl = searchParams.get('playerName');
-    if (nameFromUrl) setMyPlayerName(nameFromUrl);
+  // hooks
+  const { roomCreator, isRoomCreator } = useRoom(socketRef.current)
+  const {
+    messages, players, mainPlayer, allPlayersReady,
+    roundScore, isRoundStarted, questionsStarted,
+    mainPlayerQuestion, nextPlayerToAnswer, playerAnswer
+  } = useGameState(socketRef.current)
+  const clipboard = useClipboard()
+  const [votedPlayer, setVotedPlayer] = useState<Player | null>(null)
+  const [playerHasVoted, setPlayerHasVoted] = useState(false)
+  const [isVotingCompleted, setIsVotingCompleted] = useState(false)
+  const [isPlayerReady, setIsPlayerReady] = useState(false)
+  const [choosedNumber, setChoosedNumber] = useState<number | null>(null)
+  const [isChoosingComplete, setIsChoosingCompleted] = useState(false)
+  const [questionInput, setQuestionInput] = useState('')
+  const [answerInput, setAnswerInput] = useState('')
 
-    socketRef.current = io('http://localhost:3001');
+  const isMainPlayer = mainPlayer?.socketId === mySocketId
 
-    // MAIN SOCKET EVENTS
-    socketRef.current.on('connect', () => {
-      const id = socketRef.current?.id || '';
-      setMySocketId(id);
+  useEffect(() => { if (mainPlayer) setIsVotingCompleted(true) }, [mainPlayer])
+  useEffect(() => { if (roundScore) setIsChoosingCompleted(true) }, [roundScore])
 
-      const roomIdFromUrl = searchParams.get('roomId')?.trim();
-      if (roomIdFromUrl) {
-        socketRef.current?.emit('join_room', { roomId: roomIdFromUrl, name: nameFromUrl });
-      } else {
-        socketRef.current?.emit('create_room', {name: nameFromUrl});
-      }
-    });
-
-    socketRef.current.on('room_id', (data) => {
-      setNewRoomId(data);
-      
-      if (nameFromUrl) {
-        socketRef.current?.emit('send_player', { name: nameFromUrl });
-      }
-    });
-
-    socketRef.current.on('room_history', (data: Message[]) => {
-      setMessages(data);
-    });
-
-    socketRef.current.on('room_error', (msg: string) => {
-      alert(msg);
-      router.push('/');
-    });
-
-    socketRef.current.on('receive_message', (data: Message) => {
-      setMessages(prev => [...prev, data]);
-    });
-
-    socketRef.current.on('display_players', (data) => {
-      setPlayers(data);
-    });
-
-    socketRef.current.on('voting_result', (data) => {
-      setMainPlayer(data);
-    });
-
-    socketRef.current.on('all_players_ready', (data: boolean) => {
-      setAllPlayersReady(data);
-    });
-
-    socketRef.current.on('round_score', (data: number) => {
-      setRoundScore(data)
-    })
-
-    socketRef.current.on('questions_started', (data) => {
-      setQuestionsStarted(data)
-      setMessages([])
-    })
-
-    socketRef.current.on('room_creator', (creator: Player) => {
-     setRoomCreator(creator)
-     setIsRoomCreator(creator.socketId === socketRef.current?.id)
-    });
-
-    socketRef.current.on('round_started', (data) => {
-      setIsRoundStarted(data)
-      console.log('round comecoooou');
-      
-    })
-
-    socketRef.current.on('next_player_to_answer', (data) => {     
-      setNextPlayerThatAnswers(data)
-      console.log('next player to answer is:', data);
-      
-    })
-
-    return () => {
-      socketRef.current?.disconnect();
-    };
-  }, [searchParams]);
-
-  //OTHER FUNCTIONS
-
-  useEffect(() => {
-    if (mainPlayer) setIsVotingCompleted(true);
-  }, [mainPlayer]);
-
-  useEffect(() => {
-    if (roundScore) setIsChoosingCompleted(true)
-  }, [roundScore]);
-
+  // handlers
   function handleVotedPlayer(player: Player) {
-    setVotedPlayer(player);
+    setVotedPlayer(player)
     const vote: Vote = {
-      whoVoted: { socketId: mySocketId, name: myPlayerName },
+      whoVoted: { socketId: mySocketId, name: playerName },
       votedFor: player,
-    };
-    socketRef.current?.emit('voted_player', vote);
-    setPlayerHasVoted(true);
+    }
+    socketRef.current?.emit('voted_player', vote)
+    setPlayerHasVoted(true)
   }
 
   function handleGetReady() {
-    const playerReadyToPlay: Player = { socketId: mySocketId, name: myPlayerName };
-    socketRef.current?.emit('player_ready', playerReadyToPlay);
-    setIsPlayerReady(true);
+    socketRef.current?.emit('player_ready', { socketId: mySocketId, name: playerName })
+    setIsPlayerReady(true)
   }
 
   function handleChoosedNumber(number: number) {
     setChoosedNumber(number)
     const score: Score = {
-      number: number,
-      whoChoosed: {socketId: mySocketId, name: myPlayerName}
+      number,
+      whoChoosed: { socketId: mySocketId, name: playerName },
     }
-    console.log(score);
-    
-    socketRef.current?.emit("score_choosed", score)
+    socketRef.current?.emit('score_choosed', score)
   }
 
   function handleStartRound() {
     socketRef.current?.emit('start_round', isRoundStarted)
   }
 
-  //questions section
   function handleMainPlayerQuestion(e: React.FormEvent) {
-    e.preventDefault();
-    if(isMainPlayer && mainPlayerQuestion.trim()) {
-      socketRef.current?.emit('mainPlayer_question', mainPlayerQuestion)
+    e.preventDefault()
+    if (isMainPlayer && questionInput.trim()) {
+      socketRef.current?.emit('mainPlayer_question', questionInput)
+      setQuestionInput('')
     }
   }
 
-  //funcao de clipboard para o roomId
-  async function handleCopy() {
-    await navigator.clipboard.writeText(newRoomId)
-    setRoomIdCopied(true)
-  }
-
-  function displayClipboard() {
-    setIsClipboardHovered(true)
+  function handlePlayerAnswer(e: React.FormEvent) {
+    e.preventDefault()
+    if (!isMainPlayer && answerInput.trim()) {
+      socketRef.current?.emit('player_answer', answerInput)
+      setAnswerInput('')
+    }
   }
 
   return (
-
-    // MAIN STRUCTURE
     <roomCreatorContext.Provider value={roomCreator}>
-    <div className="ml-8 mr-8 mt-12 flex justify-between">
-      <div className="flex flex-col gap-10">
-        <h1 className="text-4xl">ASKED</h1>
-      <div
-        className="flex items-center gap-2 cursor-pointer select-none w-fit"
-        onClick={handleCopy}
-        onMouseEnter={() => setIsClipboardHovered(true)}
-        onMouseLeave={() => setIsClipboardHovered(false)}
-      >
-        <span>Room id: {newRoomId}</span>
-        {isClipboardHovered && (
-          roomIdCopied
-            ? <ClipboardCheck size={16} className="text-green-500" />
-            : <Clipboard size={16} />
-        )}
-      </div>
-        {isRoomCreator && (
-          <span>You are the room creator.</span>
-        )}
-        <div>
-          <span>Players:</span>
-          <ul>
-            {players.map(p => (
-              <div key={`${p.name}-${p.socketId}`} className='flex items-center'>
-                <span className='mr-2 w-2 h-2 rounded-4xl bg-green-500'></span>
-                <li className={p.socketId === mySocketId ? 'text-orange-500 font-semibold' : ''}>
-                  {p.name}
-                </li>
-              </div>
-            ))}
-          </ul>
+      <div className="ml-8 mr-8 mt-12 flex justify-between">
+
+        {/* sidebar */}
+        <div className="flex flex-col gap-10">
+          <h1 className="text-4xl">ASKED</h1>
+
+          <div
+            className="flex items-center gap-2 cursor-pointer select-none w-fit"
+            onClick={() => clipboard.copy(roomId)}
+            onMouseEnter={() => clipboard.setHovered(true)}
+            onMouseLeave={() => clipboard.setHovered(false)}
+          >
+            <span>Room id: {roomId}</span>
+            {clipboard.hovered && (
+              clipboard.copied
+                ? <ClipboardCheck size={16} className="text-green-500" />
+                : <Clipboard size={16} />
+            )}
+          </div>
+
+          {isRoomCreator && <span>You are the room creator.</span>}
+
+          <div>
+            <span>Players:</span>
+            <ul>
+              {players.map(p => (
+                <div key={`${p.name}-${p.socketId}`} className="flex items-center">
+                  <span className="mr-2 w-2 h-2 rounded-4xl bg-green-500" />
+                  <li className={p.socketId === mySocketId ? 'text-orange-500 font-semibold' : ''}>
+                    {p.name}
+                  </li>
+                </div>
+              ))}
+            </ul>
+          </div>
         </div>
+
+        {/* lobby */}
+        {!isRoundStarted && (
+          <Lobby
+            players={players}
+            roomCreator={roomCreator}
+            isCreator={isRoomCreator}
+            mySocketId={mySocketId}
+            onStartRound={handleStartRound}
+          />
+        )}
+
+        {/* voting */}
+        {isRoundStarted && !allPlayersReady && !questionsStarted && (
+          <VotingSection
+            players={players}
+            votedPlayer={votedPlayer}
+            playerHasVoted={playerHasVoted}
+            mainPlayer={mainPlayer}
+            isVotingCompleted={isVotingCompleted}
+            onVote={handleVotedPlayer}
+            onGetReady={handleGetReady}
+          />
+        )}
+
+        <mainPlayerContext.Provider value={mainPlayer}>
+          {/* choose a number */}
+          {isRoundStarted && allPlayersReady && !questionsStarted && (
+            <ChooseScore
+              choosedNumber={choosedNumber}
+              isChoosingComplete={isChoosingComplete}
+              onChoose={handleChoosedNumber}
+              roundScore={roundScore}
+              mySocketId={mySocketId}
+            />
+          )}
+
+          {/* questions / answers */}
+          {isRoundStarted && questionsStarted && (
+            <GameSection
+              players={players}
+              mainPlayer={mainPlayer}
+              roundScore={roundScore}
+              mySocketId={mySocketId}
+              mainPlayerQuestion={mainPlayerQuestion}
+              questionInput={questionInput}
+              onQuestionChange={setQuestionInput}
+              nextPlayerToAnswer={nextPlayerToAnswer}
+              handleMainPlayerQuestion={handleMainPlayerQuestion}
+              playerAnswer={playerAnswer}
+              handlePlayerAnswer={handlePlayerAnswer}
+              onAnswerChange={setAnswerInput}
+              answerInput={answerInput}
+            />
+          )}
+
+          {/* chat */}
+          {!(isMainPlayer && allPlayersReady && !questionsStarted) && (
+            <Chat
+              socket={socketRef.current}
+              messages={messages}
+              mySocketId={mySocketId}
+              myPlayerName={playerName}
+            />
+          )}
+        </mainPlayerContext.Provider>
+
       </div>
-
-      
-
-       {!isRoundStarted && (
-        <Lobby
-          players={players}
-          roomCreator={roomCreator} 
-          isCreator={isRoomCreator} 
-          mySocketId={mySocketId}
-          onStartRound={handleStartRound}
-        />
-       )}
-
-      {/* MAIN GAME SECTION */}
-      {isRoundStarted && !allPlayersReady && !questionsStarted && (
-      // VOTING PART
-      <VotingSection
-        players={players}
-        votedPlayer={votedPlayer}
-        playerHasVoted={playerHasVoted}
-        mainPlayer={mainPlayer}
-        isVotingCompleted={isVotingCompleted}
-        onVote={handleVotedPlayer}
-        onGetReady={handleGetReady}
-      />
-      )}
-
-      <mainPlayerContext.Provider value={mainPlayer}>
-      {isRoundStarted && allPlayersReady && !questionsStarted && (
-        // CHOOSE A NUMBER SECTION
-        <ChooseScore
-          choosedNumber={choosedNumber}
-          isChoosingComplete={isChoosingComplete}
-          onChoose={handleChoosedNumber}
-          roundScore={roundScore}
-          mySocketId={mySocketId}
-        />
-      )}
-
-      {isRoundStarted && questionsStarted && (
-        <GameSection  
-          players={players}
-          mainPlayer={mainPlayer}
-          roundScore={roundScore}
-          mySocketId={mySocketId}
-          mainPlayerQuestion={mainPlayerQuestion}
-          onQuestionChange={setMainPlayerQuestion}
-          nextPlayerThatAnswers={nextPlayerThatAnswers}
-          handleMainPlayerQuestion={handleMainPlayerQuestion}
-    
-        />
-      )}
-
-      {/* CHAT SECTION */}
-      {!(isMainPlayer && allPlayersReady && !questionsStarted) && (
-        <Chat
-          socket={socketRef.current}
-          messages={messages}
-          mySocketId={mySocketId}
-          myPlayerName={myPlayerName}
-        />
-      )}
-
-      </mainPlayerContext.Provider>
-
-    </div>
-  </roomCreatorContext.Provider>
-  );
+    </roomCreatorContext.Provider>
+  )
 }
