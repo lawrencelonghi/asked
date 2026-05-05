@@ -48,7 +48,7 @@ export default function Home() {
             value={nameInput}
             onChange={e => setNameInput(e.target.value)}
           />
-          <Button text="ENTER" />
+          <Button children="ENTER" />
         </form>
       )}
 
@@ -56,9 +56,9 @@ export default function Home() {
         <div className="flex flex-col items-center gap-10">
           <h2 className="text-2xl">Hello, {savedName}!</h2>
           <div className="flex flex-col gap-4 items-center">
-            <Button text="CREATE ROOM" onClick={handleCreateRoom} />
+            <Button children="CREATE ROOM" onClick={handleCreateRoom} />
             <span>or</span>
-            <Button text="JOIN ROOM" onClick={() => setView('join')} />
+            <Button children="JOIN ROOM" onClick={() => setView('join')} />
           </div>
         </div>
       )}
@@ -72,7 +72,7 @@ export default function Home() {
             value={roomInput}
             onChange={e => setRoomInput(e.target.value)}
           />
-          <Button text="ENTER" />
+          <Button children="ENTER" />
         </form>
       )}
     </div>

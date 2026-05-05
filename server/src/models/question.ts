@@ -4,13 +4,11 @@ import type { Round } from "./round.js";
 
 export class Question {
   content: string;
-  round: Round;
   askedTo: Player;
   answer?: Answer
 
-  constructor(content: string, round: Round, askedTo: Player) {
+  constructor(content: string, askedTo: Player) {
     this.content = content;
-    this.round = round;
     this.askedTo = askedTo;
   }
 

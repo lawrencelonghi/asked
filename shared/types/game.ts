@@ -20,3 +20,9 @@ export interface Score {
   number: number | null;
   whoChoosed: Player | null
 }
+
+export interface QAItem {
+  question: { content: string } | null
+  answer: { content: string } | null
+  askedTo: { name: string; socketId: string }
+}

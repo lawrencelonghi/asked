@@ -69,7 +69,7 @@ const Chat = ({ socket, messages, mySocketId, myPlayerName }: ChatProps) => {
         <button
           type="button"
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          className="px-3 ml-1 text-2xl hover:bg-gray-100 rounded transition-colors"
+          className="px-3 ml-1 text-xl hover:bg-gray-100 rounded transition-colors"
         >
           🫠
         </button>
@@ -81,8 +81,7 @@ const Chat = ({ socket, messages, mySocketId, myPlayerName }: ChatProps) => {
           className="w-full focus:outline-none focus:ring-0 p-2 pl-4"
         />
         <button type="submit" className="mr-4 hover:opacity-70 transition-opacity">
-          <Send className="cursor-pointer"
-          color='#2b9c41' />
+          <Send className="cursor-pointer" size={19} />
         </button>
       </form>
     </div>

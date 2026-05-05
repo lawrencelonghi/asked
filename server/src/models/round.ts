@@ -4,7 +4,7 @@ import type { Vote } from "./vote.js";
 import Room from "./room.js";
 import type { Question } from "./question.js";
 import type { Answer } from "./answer.js";
-import { QuestionAndAnswer } from './questionAndAnswer.js'
+import { QuestionAndAnswer } from './questionsAndAnswers.js'
 
 export class Round {
   private id: string
@@ -17,6 +17,7 @@ export class Round {
   private answeredPlayers: Player[] = []
   private qaList: QuestionAndAnswer[]
   private currentQAIndex: number = 0
+  private mainPlayerGuess: number 
 
 
   constructor(room: Room ) {
@@ -163,6 +164,11 @@ export class Round {
         return this.qaList[this.currentQAIndex] ?? null
     }
 
+    getQAList() {
+        return this.qaList
+    }
+
+    //codigo do metodo refeito com ia
     getNextPlayerToAnswer(players: Player[], mainPlayer: Player): Player | null {
         const answeredIds = this.qaList.map(qa => qa.askedTo.socketId)
 
@@ -175,4 +181,13 @@ export class Round {
     markPlayerAsAnswered(player: Player) {
         this.answeredPlayers.push(player)
     }
+
+    isQASetComplete(): boolean {
+        if(this.qaList.length === this.room.getPlayers().length) return true
+    }
+
+    isMainPlayerWinner(mainPlayerGuess: number){
+        if(this.getScore() === this.mainPlayerGuess) return true
+    }
+    
 }

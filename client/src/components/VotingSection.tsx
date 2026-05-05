@@ -49,7 +49,7 @@ export default function VotingSection({
       </span>
 
       {isVotingCompleted && (
-        <Button text='START GAME' 
+        <Button children='START GAME' 
                 onClick={onGetReady} />
       )}
     </div>

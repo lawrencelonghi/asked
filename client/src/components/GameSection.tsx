@@ -1,6 +1,9 @@
-import React from 'react'
-import { Player } from '../../../shared/types/game';
+import React, { useEffect, useState } from 'react'
+import { Player, QAItem } from '../../../shared/types/game';
 import Button from './Button';
+import { ChevronDown } from 'lucide-react';
+
+
 
 interface GameSectionProps {
   players: Player[]
@@ -16,7 +19,7 @@ interface GameSectionProps {
   handlePlayerAnswer: (e: React.FormEvent) => void 
   onAnswerChange: (value: string) => void
   answerInput: string
-}
+  qaList: QAItem[] | null}
 
 const GameSection = ({
   players, 
@@ -31,12 +34,19 @@ const GameSection = ({
   playerAnswer,
   handlePlayerAnswer,
   onAnswerChange,
-  answerInput
+  answerInput,
+  qaList
 }: GameSectionProps) => {
 
   const isMainPlayer = mySocketId === mainPlayer?.socketId
   const isNextToAnswer = mySocketId === nextPlayerToAnswer?.socketId
   const isSpectator = !isMainPlayer && !isNextToAnswer
+  const [ isQAModalOpen, setIsQAModalOpen ] = useState(false)
+  const [ isQASetComplet, setIsQASetComplet ] = useState(false)
+
+  useEffect(() => {
+    
+  },[qaList])
 
   return (
     <div className='flex flex-col items-center gap-20 mt-20'>
@@ -60,7 +70,7 @@ const GameSection = ({
                 onQuestionChange(e.target.value)
               }}
             />
-            <Button text='ENTER'/>
+            <Button children='ENTER'/>
             {mainPlayerQuestion && (
               <span className='text-green-500 text-lg'>Question sent!</span>
             )}
@@ -95,7 +105,7 @@ const GameSection = ({
                       onAnswerChange(e.target.value)
                     }}
                   />
-                  <Button text='ENTER'/>
+                  <Button children='ENTER'/>
                   {playerAnswer && (
                     <span className='text-green-500 text-lg'>Answer sent!</span>
                   )}
@@ -120,7 +130,23 @@ const GameSection = ({
           )}
         </div>
       )}
+      
+      <div onMouseLeave={() => setIsQAModalOpen(false)} onMouseEnter={() => setIsQAModalOpen(true)}>
+        <Button>
+          See all questions and answers <ChevronDown size={20} strokeWidth={1}/>
+        </Button>
 
+        {isQAModalOpen && qaList && (
+          <div className="flex flex-col gap-4 mt-6">
+            {qaList.map((qa, i) => (
+              <div key={i} className='flex flex-col'>
+                <span className='text-orange-500'>- {qa.question?.content}</span>
+                <span>- {qa.answer?.content}</span>
+              </div>
+            ))}
+        </div>
+      )}
+      </div>
     </div>
   )
 }

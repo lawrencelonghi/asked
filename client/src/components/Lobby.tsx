@@ -18,7 +18,7 @@ const Lobby = ({ players, roomCreator, isCreator, onStartRound }: LobbySectionPr
         <>
           <h2 className='text-2xl font-semibold'>You are the room creator.</h2>
           <p>Wait for your friends and then start the round</p>
-          <Button text='Start Round' onClick={onStartRound} />
+          <Button children='Start Round' onClick={onStartRound} />
         </>
       ) : (
         <h2 className='text-2xl font-semibold'>Waiting for players...</h2>

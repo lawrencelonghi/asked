@@ -33,9 +33,7 @@ export function useSocket({ playerName, roomIdFromUrl }: UseSocketOptions) {
     return () => {
       socket.disconnect()
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  // playerName e roomIdFromUrl são lidos uma única vez na conexão inicial,
-  // intencionalmente sem re-executar o efeito
+  }, []) 
 
   return { socketRef, mySocketId, roomId }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Socket } from 'socket.io-client'
-import { Message, Player } from '../../../shared/types/game'
+import { Message, Player, QAItem } from '../../../shared/types/game'
 
 export function useGameState(socket: Socket | null) {
   const [ messages, setMessages ] = useState<Message[]>([])
@@ -13,6 +13,7 @@ export function useGameState(socket: Socket | null) {
   const [ mainPlayerQuestion, setMainPlayerQuestion ] = useState('')
   const [ nextPlayerToAnswer, setNextPlayerToAnswer ] = useState<Player | null>(null)
   const [ playerAnswer, setPlayerAnswer ] = useState('')
+  const [ qaList, setQaList ] = useState<QAItem[] | null>(null)
 
   useEffect(() => {
     if (!socket) return
@@ -31,12 +32,13 @@ export function useGameState(socket: Socket | null) {
     socket.on('main_player_question', (question: string) => setMainPlayerQuestion(question))
     socket.on('next_player_to_answer', (player: Player) => setNextPlayerToAnswer(player))
     socket.on('player_answer', (answer: string) => setPlayerAnswer(answer))
+    socket.on('qa_list', (qaList) => setQaList(qaList))
 
     return () => {
       const events = [
         'room_history', 'receive_message', 'display_players', 'voting_result',
         'all_players_ready', 'round_score', 'round_started', 'questions_started',
-        'main_player_question', 'next_player_to_answer', 'player_answer'
+        'main_player_question', 'next_player_to_answer', 'player_answer', 'qa_list'
       ]
       events.forEach(event => socket.off(event))
     }
@@ -52,6 +54,7 @@ export function useGameState(socket: Socket | null) {
     questionsStarted,
     mainPlayerQuestion,
     nextPlayerToAnswer,
-    playerAnswer
+    playerAnswer,
+    qaList
   }
 }

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Clipboard, ClipboardCheck } from 'lucide-react'
-import { Player, Score, Vote } from '../../../../shared/types/game'
+import { Player, Score, Vote, QAItem } from '../../../../shared/types/game'
 import Chat from '@/components/Chat'
 import VotingSection from '@/components/VotingSection'
 import GameSection from '@/components/GameSection'
@@ -29,7 +29,7 @@ export default function Game() {
   const {
     messages, players, mainPlayer, allPlayersReady,
     roundScore, isRoundStarted, questionsStarted,
-    mainPlayerQuestion, nextPlayerToAnswer, playerAnswer
+    mainPlayerQuestion, nextPlayerToAnswer, playerAnswer, qaList
   } = useGameState(socketRef.current)
   const clipboard = useClipboard()
   const [votedPlayer, setVotedPlayer] = useState<Player | null>(null)
@@ -182,6 +182,7 @@ export default function Game() {
               handlePlayerAnswer={handlePlayerAnswer}
               onAnswerChange={setAnswerInput}
               answerInput={answerInput}
+              qaList={qaList}
             />
           )}
 

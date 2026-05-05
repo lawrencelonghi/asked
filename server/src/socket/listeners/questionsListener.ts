@@ -4,6 +4,7 @@ import { PlayerRepository } from "../../repositories/playerRepository.js"
 import { ConnectionListener } from "./connectionListener.js";
 import { Server, Socket } from 'socket.io'
 import { QuestionRepository } from "../../repositories/questionRepository.js";
+import { Question } from "../../models/question.js";
 
 export class QuestionConnectionListener extends ConnectionListener {
   private roundRepository: RoundRepository
@@ -34,25 +35,34 @@ export class QuestionConnectionListener extends ConnectionListener {
       if(!round) return
 
       const players = this.playerRepository.getPlayersByRoom(room)
+      if(!players) return 
+
       const mainPlayer = round?.getMainPlayer()
       if(!mainPlayer) return
 
+      
+
       const nextPlayerToAnswer = round.getNextPlayerToAnswer(players, mainPlayer)
-      if(!nextPlayerToAnswer) {
-        return console.log('a rodada acabou');
-      }
+      if(!nextPlayerToAnswer) return console.log('a rodada acabou');
+
+      const savedQuestion = new Question(mainPlayerQuestion, nextPlayerToAnswer)
 
       //inicia par pergunta/resposta indicando quem deve responder
       round.startQA(nextPlayerToAnswer)
 
-      round.setQuestion(mainPlayerQuestion)
+      round.setQuestion(savedQuestion)
+
+      const qaList = round.getQAList()
 
       this.io.to(room.getId()).emit('next_player_to_answer', nextPlayerToAnswer)
       this.io.to(room.getId()).emit('main_player_question', mainPlayerQuestion)
+      this.io.to(room.getId()).emit('qa_list', qaList)
+
 
       this.roundRepository.save(round)
 
-      console.log('a pergunta foi:', mainPlayerQuestion, 'e quem tem que responder é:', nextPlayerToAnswer);
+      console.log(round.getQAList());
+      
 
       
     })

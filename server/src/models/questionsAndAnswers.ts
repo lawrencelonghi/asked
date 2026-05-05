@@ -1,6 +1,7 @@
 import type { Answer } from "./answer.js"
 import type { Player } from "./player.js"
 import type { Question } from "./question.js"
+import type { Round } from "./round.js"
 
 export class QuestionAndAnswer {
   question: Question | null = null

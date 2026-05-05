@@ -42,15 +42,30 @@ export class AnswerConnectionListener extends ConnectionListener {
       const currentQA = round.getCurrentQA()
       if(!currentQA) return
 
+      const players = room.getPlayers()
+      if(!players) return
 
-      const savedAnswer = new Answer(answer, round, answeredBy, currentQA.question!)
+      const mainPlayer = round.getMainPlayer()
+      if(!mainPlayer) return
+
+
+      const savedAnswer = new Answer(answer, answeredBy, currentQA.question!)
+
+      const nextPlayerToAnswer = round.getNextPlayerToAnswer(players, mainPlayer)
 
       round.setAnswer(savedAnswer)
-  
-      this.roundRepository.save(round)
+
+      const qaList = round.getQAList()
+
 
       this.io.to(room.getId()).emit('player_answer', answer)
+      this.io.to(room.getId()).emit('next_player_answer', nextPlayerToAnswer)
+      this.io.to(room.getId()).emit('qa_list', qaList)
 
+      this.roundRepository.save(round)
+
+      console.log(round.getQAList());
+      
     })
   }
 
