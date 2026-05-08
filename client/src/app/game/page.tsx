@@ -14,6 +14,7 @@ import { useSocket } from '@/hooks/useSocket'
 import { useRoom } from '@/hooks/useRoom'
 import { useGameState } from '@/hooks/useGameState'
 import { useClipboard } from '@/hooks/useClipboard'
+import GuessSection from '@/components/GuessSection'
 
 export default function Game() {
   const searchParams = useSearchParams()
@@ -29,7 +30,7 @@ export default function Game() {
   const {
     messages, players, mainPlayer, allPlayersReady,
     roundScore, isRoundStarted, questionsStarted,
-    mainPlayerQuestion, nextPlayerToAnswer, playerAnswer, qaList
+    mainPlayerQuestion, nextPlayerToAnswer, playerAnswer, qaList, isGuessSectionStarted
   } = useGameState(socketRef.current)
   const clipboard = useClipboard()
   const [votedPlayer, setVotedPlayer] = useState<Player | null>(null)
@@ -40,11 +41,14 @@ export default function Game() {
   const [isChoosingComplete, setIsChoosingCompleted] = useState(false)
   const [questionInput, setQuestionInput] = useState('')
   const [answerInput, setAnswerInput] = useState('')
+  const [guess, setGuess ] = useState<number | null>(null)
+  const [isGuessingComplete, setIsGuessingComplete] = useState(false)
 
   const isMainPlayer = mainPlayer?.socketId === mySocketId
 
   useEffect(() => { if (mainPlayer) setIsVotingCompleted(true) }, [mainPlayer])
   useEffect(() => { if (roundScore) setIsChoosingCompleted(true) }, [roundScore])
+  useEffect(() => { if(guess) setIsGuessingComplete(true) }, [guess])
 
   // handlers
   function handleVotedPlayer(player: Player) {
@@ -89,6 +93,11 @@ export default function Game() {
       socketRef.current?.emit('player_answer', answerInput)
       setAnswerInput('')
     }
+  }
+
+  function handleGuess(number: number) {
+    setGuess(number)    
+    socketRef.current?.emit('mainPlayer_guess', number)
   }
 
   return (
@@ -167,7 +176,7 @@ export default function Game() {
           )}
 
           {/* questions / answers */}
-          {isRoundStarted && questionsStarted && (
+          {isRoundStarted && questionsStarted && !isGuessSectionStarted && (
             <GameSection
               players={players}
               mainPlayer={mainPlayer}
@@ -184,6 +193,19 @@ export default function Game() {
               answerInput={answerInput}
               qaList={qaList}
             />
+          )}
+
+          {isGuessSectionStarted && (
+            <GuessSection
+              mainPlayer={mainPlayer}
+              players={players}
+              mySocketId={mySocketId}
+              roundScore={roundScore}
+              onGuess={handleGuess}
+              guess={guess}
+              isGuessingComplete={isChoosingComplete}
+              />
+              
           )}
 
           {/* chat */}

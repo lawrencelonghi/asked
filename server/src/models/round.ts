@@ -17,7 +17,6 @@ export class Round {
   private answeredPlayers: Player[] = []
   private qaList: QuestionAndAnswer[]
   private currentQAIndex: number = 0
-  private mainPlayerGuess: number 
 
 
   constructor(room: Room ) {
@@ -183,11 +182,11 @@ export class Round {
     }
 
     isQASetComplete(): boolean {
-        if(this.qaList.length === this.room.getPlayers().length) return true
+        return this.qaList.length === this.room.getPlayers().length
     }
 
-    isMainPlayerWinner(mainPlayerGuess: number){
-        if(this.getScore() === this.mainPlayerGuess) return true
+    isMainPlayerWinner(guess: number): boolean {
+        return this.getScore() === guess  // aqui também estava usando this.mainPlayerGuess em vez do parâmetro
     }
     
 }

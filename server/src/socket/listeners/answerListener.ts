@@ -59,12 +59,15 @@ export class AnswerConnectionListener extends ConnectionListener {
 
 
       this.io.to(room.getId()).emit('player_answer', answer)
-      this.io.to(room.getId()).emit('next_player_answer', nextPlayerToAnswer)
+      this.io.to(room.getId()).emit('next_player_to_answer', nextPlayerToAnswer)
       this.io.to(room.getId()).emit('qa_list', qaList)
+      if(!nextPlayerToAnswer) {
+        this.io.to(room.getId()).emit('start_guess')
+      }
 
       this.roundRepository.save(round)
 
-      console.log(round.getQAList());
+      console.log('a resposta foi:', answer, 'e a proxima pergunta deve ser feita a:', nextPlayerToAnswer?.name);
       
     })
   }

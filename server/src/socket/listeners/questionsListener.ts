@@ -61,9 +61,7 @@ export class QuestionConnectionListener extends ConnectionListener {
 
       this.roundRepository.save(round)
 
-      console.log(round.getQAList());
-      
-
+      console.log('a pergunta é:', mainPlayerQuestion, 'e quem deve responder é:', nextPlayerToAnswer.name);
       
     })
   }

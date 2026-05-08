@@ -21,7 +21,6 @@ export class VoteConnectionListener extends ConnectionListener {
 
   voteHandler() {
       this.socket.on("voted_player", (vote: Vote) => {
-        console.log("voto recebido:", vote)
 
         const room = this.roomRepository.findBySocketId(this.socket.id)
 
