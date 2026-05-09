@@ -24,7 +24,7 @@ export class QuestionConnectionListener extends ConnectionListener {
     this.handleQuestion()
   }
 
-  handleQuestion() {
+  private handleQuestion() {
     this.socket.on('mainPlayer_question', (data) => {
       const mainPlayerQuestion = data
       

@@ -52,7 +52,7 @@ const GameSection = ({
     <div className='flex flex-col items-center gap-20 mt-20'>
 
       {/* Main player */}
-      {isMainPlayer && (
+      {isMainPlayer && !mainPlayerQuestion && (
         <div className='flex flex-col items-center gap-12'>
           <h2 className='text-xl font-semibold'>
             You ask {nextPlayerToAnswer?.name} a question.
@@ -69,12 +69,18 @@ const GameSection = ({
                 e.target.style.height = e.target.scrollHeight + 'px'
                 onQuestionChange(e.target.value)
               }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleMainPlayerQuestion(e)
+                  }
+                }}
             />
-            <Button children='ENTER'/>
-            {mainPlayerQuestion && (
-              <span className='text-green-500 text-lg'>Question sent!</span>
-            )}
+            <Button children='SEND'/>
           </form>
+          {mainPlayerQuestion && (
+            <span className='text-green-500 text-xl'>Question sent!</span>
+          )}
         </div>
       )}
 
@@ -104,6 +110,12 @@ const GameSection = ({
                       e.target.style.height = e.target.scrollHeight + 'px'
                       onAnswerChange(e.target.value)
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handlePlayerAnswer(e)
+                      }
+                    }}
                   />
                   <Button children='ENTER'/>
                   {playerAnswer && (
@@ -131,8 +143,10 @@ const GameSection = ({
         </div>
       )}
       
-      <div onMouseLeave={() => setIsQAModalOpen(false)} onMouseEnter={() => setIsQAModalOpen(true)}>
-        <Button>
+      <div onMouseLeave={() => setIsQAModalOpen(false)}
+           onMouseEnter={() => setIsQAModalOpen(true)}
+        >
+        <Button nonClickable>
           See all questions and answers <ChevronDown size={20} strokeWidth={1}/>
         </Button>
 

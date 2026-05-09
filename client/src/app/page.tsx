@@ -44,12 +44,14 @@ export default function Home() {
           <input
             id="playerName"
             type="text"
+            autoFocus
             className="border-b text-xl text-center focus:outline-none"
             value={nameInput}
             onChange={e => setNameInput(e.target.value)}
           />
           <Button children="ENTER" />
         </form>
+
       )}
 
       {view === 'menu' && (
@@ -70,6 +72,7 @@ export default function Home() {
             placeholder="Room ID"
             className="border-b text-xl text-center focus:outline-none"
             value={roomInput}
+            autoFocus
             onChange={e => setRoomInput(e.target.value)}
           />
           <Button children="ENTER" />

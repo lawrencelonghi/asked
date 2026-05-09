@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Player } from '../../../shared/types/game'
+import Slider from './Slider'
+import Button from './Button'
 
 interface GuessSectionProps {
   mainPlayer: Player | null
@@ -12,47 +14,27 @@ interface GuessSectionProps {
 }
 
 const GuessSection = ({mainPlayer, players, mySocketId, roundScore, guess, onGuess, isGuessingComplete}: GuessSectionProps) => {
-  const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const [sliderValue, setSliderValue] = useState(5)
 
   return (
     <div>
-      {/* mainPlayer */}
       {mainPlayer?.socketId === mySocketId && (
-        <div>
-          <h2>Now guess the correct number based on the answers you've got!</h2>
+        <div className='mt-20 flex flex-col items-center gap-16'>
+          <h2 className='text-lg'>GUESS THE CORRECT NUMBER BASED ON THE ANSWERS YOU'VE GOT</h2>
 
-          <ul className='grid grid-cols-3 gap-6'>
-            {numbers.map(number => (
-              <li
-                key={number}
-                className={`border text-center max-w-30 text-md px-4 py-2 cursor-pointer
-                  ${guess === number
-                    ? 'bg-white text-black'          
-                    : 'hover:bg-white hover:text-black'
-                  }`}
-                onClick={() => onGuess(number)}
-              >
-                {number}
-              </li>
-            ))}
-            <li className={`border text-center max-w-30 text-sm px-3 py-2 cursor-pointer
-              ${isGuessingComplete
-                ? 'bg-green-600 text-black'           // confirmado
-                : 'text-green-600 hover:bg-green-600 hover:text-black'
-              }`}>
-              ready
-            </li>
-          </ul>
+          <Slider value={sliderValue} onChange={setSliderValue} />
+
+          <Button onClick={() => onGuess(sliderValue)}>
+            ready
+          </Button>
         </div>
       )}
 
-      {/* spectators */}
       {mainPlayer?.socketId !== mySocketId && (
-        <div>
-          <h2>{mainPlayer?.name} will make a guess!</h2>
+        <div className='mt-20'>
+          <h2 className='text-2xl'>NOW {mainPlayer?.name.toUpperCase()} WILL MAKE A GUESS!</h2>
         </div>
       )}
-
     </div>
   )
 }

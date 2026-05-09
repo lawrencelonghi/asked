@@ -18,14 +18,10 @@ export class StartGameConnectionListener extends ConnectionListener {
     this.onStartGame()
   }
 
-  onStartGame() {
+  private onStartGame() {
     this.socket.on("player_ready", (playerReady) => {
       const room = this.roomRepository.findBySocketId(this.socket.id)
-
-      if (!room) {
-       console.log("room não encontrado para socket:", this.socket.id)
-       return
-      }
+      if (!room) return
 
       const round = this.roundRepository.findActiveByRoom(room)
       if (!round) return
@@ -34,7 +30,6 @@ export class StartGameConnectionListener extends ConnectionListener {
       this.roundRepository.save(round)
 
       if(round.allPlayersReadyToPlay()) {
-        // round.gameStarted()
         return this.io.to(room.getId()).emit('all_players_ready', true)
       }
     })

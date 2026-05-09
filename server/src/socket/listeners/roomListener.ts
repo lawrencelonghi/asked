@@ -36,9 +36,7 @@ private onCreateRoom() {
         this.socket.join(room.getId())
         this.socket.emit('room_id', room.getId())
         this.socket.emit('room_creator', player) // ← emite o player criador
-        this.socket.emit('display_players', room.getPlayers())
-        console.log(`o criador da sala é:`, room.getRoomCreatorPlayer());
-        
+        this.socket.emit('display_players', room.getPlayers())        
     })
     
 }

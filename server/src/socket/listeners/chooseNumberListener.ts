@@ -22,15 +22,11 @@ export class chooseNumberConnectionListener extends ConnectionListener {
     this.scoreHandler()
   }
 
-  scoreHandler() {
+  private scoreHandler() {
     this.socket.on('score_choosed', (score: Score) => {
-      console.log(score);
       const room = this.roomRepository.findBySocketId(this.socket.id)
 
-      if (!room) {
-          console.log("room não encontrado para socket:", this.socket.id)
-          return
-      }
+      if (!room) return
 
       const round = this.roundRepository.findActiveByRoom(room)
       if(!round) return
@@ -55,14 +51,9 @@ export class chooseNumberConnectionListener extends ConnectionListener {
 
         this.messageRepository.deleteByRoomId(room.getId())
 
-        this.io
-          .to(room.getId())
-          .except(mainPlayer?.socketId ?? '')
-          .emit('round_score', roundScore)  
+        this.io.to(room.getId()).except(mainPlayer?.socketId ?? '').emit('round_score',roundScore)  
 
-        this.io
-        .to(room.getId())
-        .emit('questions_started', true)
+        this.io.to(room.getId()).emit('questions_started', true)
       }
     })
   }

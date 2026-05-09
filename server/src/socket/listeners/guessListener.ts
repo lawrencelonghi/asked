@@ -19,7 +19,7 @@ export class GuessConnectionListener extends ConnectionListener {
     this.handleGuess()
   }
 
-  handleGuess() {
+  private handleGuess() {
     this.socket.on('mainPlayer_guess', (guess) => {
       const room = this.roomRepository.findBySocketId(this.socket.id)
       if(!room) return 
@@ -35,9 +35,9 @@ export class GuessConnectionListener extends ConnectionListener {
       this.io.to(room.getId()).emit('isMainPlayer_winner', isMainPlayerWinner)
       
       if(isMainPlayerWinner) {
-        console.log('mainPlayer acertou!!!!');
+        console.log('mainPlayer acertou');
       } else {
-        console.log('mainPlayer errou!!!!! kkkkkkj'); 
+        console.log('mainPlayer errou'); 
       }
       
     })

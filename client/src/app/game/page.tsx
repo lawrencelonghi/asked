@@ -160,6 +160,7 @@ export default function Game() {
             isVotingCompleted={isVotingCompleted}
             onVote={handleVotedPlayer}
             onGetReady={handleGetReady}
+            isPlayerReady={isPlayerReady}
           />
         )}
 

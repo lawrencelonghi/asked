@@ -19,7 +19,7 @@ export class VoteConnectionListener extends ConnectionListener {
     this.voteHandler()
   }
 
-  voteHandler() {
+  private voteHandler() {
       this.socket.on("voted_player", (vote: Vote) => {
 
         const room = this.roomRepository.findBySocketId(this.socket.id)
@@ -31,15 +31,10 @@ export class VoteConnectionListener extends ConnectionListener {
 
         const round = this.roundRepository.findActiveByRoom(room)
 
-        if (!round) {
-          console.log("nenhum round ativo na sala")
-          return
-        }
+        if (!round) return
 
         const voteAccepted = round.addVote(vote)
-        if(!voteAccepted){
-          console.log("jogador já votou");
-        } 
+        if(!voteAccepted) return 
       
         this.roundRepository.save(round)
 

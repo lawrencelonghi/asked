@@ -27,7 +27,7 @@ export class AnswerConnectionListener extends ConnectionListener {
     this.handleAnswer()
   }
 
-  handleAnswer() {
+  private handleAnswer() {
     this.socket.on('player_answer', (answer) => {
 
       const room = this.roomRepository.findBySocketId(this.socket.id)

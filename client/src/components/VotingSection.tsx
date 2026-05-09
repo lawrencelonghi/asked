@@ -10,6 +10,7 @@ interface VotingSectionProps {
   isVotingCompleted: boolean
   onVote: (player: Player) => void
   onGetReady: () => void
+  isPlayerReady: boolean
 }
 
 export default function VotingSection({
@@ -20,6 +21,7 @@ export default function VotingSection({
   isVotingCompleted,
   onVote,
   onGetReady,
+  isPlayerReady
 }: VotingSectionProps) {
   return (
     <div className='flex flex-col items-center gap-20 mt-20'>
@@ -28,7 +30,7 @@ export default function VotingSection({
       <ul className='grid grid-cols-3 gap-6'>
         {players.map(p => (
           <li
-            key={p.name}
+            key={p.socketId}
             className={
               votedPlayer?.socketId === p.socketId
                 ? 'border text-center text-black bg-green-500 max-w-30 text-md px-4 py-2'

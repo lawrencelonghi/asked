@@ -38,10 +38,11 @@ export class RoundListenerConnection extends ConnectionListener  {
       this.roundRepository.save(round)
 
       room.startRound(round)
+      
       this.roomRepository.save(room)
 
       this.messageRepository.deleteByRoomId(room.getId()) //nao esta deletando as mensagens
-      console.log('round comecou');
+
       this.io.to(room.getId()).emit('round_started', true)
     })
   }
