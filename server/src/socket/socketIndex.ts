@@ -10,6 +10,7 @@ import { RoundListenerConnection } from './listeners/startRoundListener.js';
 import { QuestionConnectionListener } from './listeners/questionsListener.js';
 import { AnswerConnectionListener } from './listeners/answerListener.js';
 import { GuessConnectionListener } from './listeners/guessListener.js';
+import { StartNewRoundListenerConnection } from './listeners/startNewRoundListener.js';
 
 export class SocketConnectionService {
   io: Server
@@ -37,6 +38,7 @@ export class SocketConnectionService {
           const questionListener = new QuestionConnectionListener(this.io, socket)
           const answerListener = new AnswerConnectionListener(this.io, socket)
           const guessListener = new GuessConnectionListener(this.io, socket)
+          const startNewRoundListener = new StartNewRoundListenerConnection(this.io, socket)
 
           roomListener.listen()
           roundListener.listen()
@@ -48,6 +50,7 @@ export class SocketConnectionService {
           questionListener.listen()
           answerListener.listen()
           guessListener.listen()
+          startNewRoundListener.listen()
       })
   }
 }

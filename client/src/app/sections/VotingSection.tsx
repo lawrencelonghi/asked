@@ -1,5 +1,5 @@
 'use client'
-import type { Player } from '../../../shared/types/game'
+import { Player } from '../../../../shared/types/game'
 import Button from '@/components/Button'
 
 interface VotingSectionProps {

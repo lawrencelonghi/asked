@@ -1,8 +1,8 @@
 'use client'
 import { useContext, useState } from 'react';
 import { mainPlayerContext } from '@/contexts/mainPlayerContext';
-import Slider from './Slider';
-import Button from './Button';
+import Slider from '@/components/Slider';
+import Button from '@/components/Button'
 
 interface ChosseScoreSectionProps {
   choosedNumber: number | null;

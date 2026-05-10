@@ -62,7 +62,7 @@ export class AnswerConnectionListener extends ConnectionListener {
       this.io.to(room.getId()).emit('next_player_to_answer', nextPlayerToAnswer)
       this.io.to(room.getId()).emit('qa_list', qaList)
       if(!nextPlayerToAnswer) {
-        this.io.to(room.getId()).emit('start_guess')
+        this.io.to(room.getId()).emit('start_guess', true)
       }
 
       this.roundRepository.save(round)

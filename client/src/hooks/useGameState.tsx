@@ -15,6 +15,9 @@ export function useGameState(socket: Socket | null) {
   const [ playerAnswer, setPlayerAnswer ] = useState('')
   const [ qaList, setQaList ] = useState<QAItem[] | null>(null)
   const [ isGuessSectionStarted, setIsGuessSectionStarted ] = useState(false)
+  const [ isResultSectionStarted, setIsResultSectionStarted ] = useState(false)
+  const [ isMainPlayerWinner, setIsMainPlayerWinner ] = useState<boolean | null>(null)
+  const [ isNewRoundStarted, setIsNewRoundStarted ] = useState(false)
 
   useEffect(() => {
     if (!socket) return
@@ -38,14 +41,31 @@ export function useGameState(socket: Socket | null) {
     })
     socket.on('player_answer', (answer: string) => setPlayerAnswer(answer))
     socket.on('qa_list', (qaList) => setQaList(qaList))
-    socket.on('start_guess', () => setIsGuessSectionStarted(true))
+    socket.on('start_guess', (data) => setIsGuessSectionStarted(data))
+    socket.on('start_game_result', (data) => setIsResultSectionStarted(data))
+    socket.on('isMainPlayer_winner', (result) => setIsMainPlayerWinner(result))
+    socket.on('new_round_started', (data) => {
+      setIsNewRoundStarted(data)
 
+      setMainPlayer(null)
+      setAllPlayersReady(false)
+      setRoundScore(null)
+      setQuestionsStarted(false)
+      setMainPlayerQuestion('')
+      setNextPlayerToAnswer(null)
+      setPlayerAnswer('')
+      setQaList(null)
+      setIsGuessSectionStarted(false)
+      setIsResultSectionStarted(false)
+      setIsMainPlayerWinner(null)
+      setIsRoundStarted(false) 
+    })
     return () => {
       const events = [
         'room_history', 'receive_message', 'display_players', 'voting_result',
         'all_players_ready', 'round_score', 'round_started', 'questions_started',
         'main_player_question', 'next_player_to_answer', 'player_answer', 'qa_list',
-        'start_guess'
+        'start_guess', 'start_game_result', 'isMainPlayer_winner', 'new_round_started'
       ]
       events.forEach(event => socket.off(event))
     }
@@ -63,6 +83,9 @@ export function useGameState(socket: Socket | null) {
     nextPlayerToAnswer,
     playerAnswer,
     qaList,
-    isGuessSectionStarted
+    isGuessSectionStarted,
+    isResultSectionStarted,
+    isMainPlayerWinner,
+    isNewRoundStarted
   }
 }

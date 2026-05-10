@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Player, QAItem } from '../../../shared/types/game';
-import Button from './Button';
+import { Player, QAItem } from '../../../../shared/types/game'
+import Button from '@/components/Button';
 import { ChevronDown } from 'lucide-react';
 
 

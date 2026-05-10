@@ -1,6 +1,6 @@
 import React from 'react'
-import { Player } from '../../../shared/types/game'
-import Button from './Button'
+import { Player } from '../../../../shared/types/game'
+import Button from '@/components/Button'
 
 interface LobbySectionPropsSectionProps {
   players: Player[]

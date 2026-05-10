@@ -188,5 +188,9 @@ export class Round {
     isMainPlayerWinner(guess: number): boolean {
         return this.getScore() === guess  // aqui também estava usando this.mainPlayerGuess em vez do parâmetro
     }
+
+    endRound() {
+
+    }
     
 }

@@ -32,6 +32,7 @@ export class GuessConnectionListener extends ConnectionListener {
 
       const isMainPlayerWinner = round.isMainPlayerWinner(guess)
 
+      this.io.to(room.getId()).emit('start_game_result', true)
       this.io.to(room.getId()).emit('isMainPlayer_winner', isMainPlayerWinner)
       
       if(isMainPlayerWinner) {

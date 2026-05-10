@@ -4,17 +4,18 @@ import { useSearchParams } from 'next/navigation'
 import { Clipboard, ClipboardCheck } from 'lucide-react'
 import { Player, Score, Vote, QAItem } from '../../../../shared/types/game'
 import Chat from '@/components/Chat'
-import VotingSection from '@/components/VotingSection'
-import GameSection from '@/components/GameSection'
-import ChooseScore from '@/components/ChosseScore'
-import Lobby from '@/components/Lobby'
+import VotingSection from '../sections/VotingSection'
+import GameSection from '../sections/GameSection'
+import ChooseScore from '../sections/ChosseScoreSection'
+import Lobby from '../sections/Lobby'
 import { mainPlayerContext } from '@/contexts/mainPlayerContext'
 import { roomCreatorContext } from '@/contexts/roomCreatorContext'
 import { useSocket } from '@/hooks/useSocket'
 import { useRoom } from '@/hooks/useRoom'
 import { useGameState } from '@/hooks/useGameState'
 import { useClipboard } from '@/hooks/useClipboard'
-import GuessSection from '@/components/GuessSection'
+import GuessSection from '@/app/sections/GuessSection'
+import ResultSection from '../sections/ResultSection'
 
 export default function Game() {
   const searchParams = useSearchParams()
@@ -30,7 +31,7 @@ export default function Game() {
   const {
     messages, players, mainPlayer, allPlayersReady,
     roundScore, isRoundStarted, questionsStarted,
-    mainPlayerQuestion, nextPlayerToAnswer, playerAnswer, qaList, isGuessSectionStarted
+    mainPlayerQuestion, nextPlayerToAnswer, playerAnswer, qaList, isGuessSectionStarted, isResultSectionStarted, isMainPlayerWinner, isNewRoundStarted
   } = useGameState(socketRef.current)
   const clipboard = useClipboard()
   const [votedPlayer, setVotedPlayer] = useState<Player | null>(null)
@@ -49,6 +50,18 @@ export default function Game() {
   useEffect(() => { if (mainPlayer) setIsVotingCompleted(true) }, [mainPlayer])
   useEffect(() => { if (roundScore) setIsChoosingCompleted(true) }, [roundScore])
   useEffect(() => { if(guess) setIsGuessingComplete(true) }, [guess])
+  useEffect(() => {
+    if (isNewRoundStarted) {
+      setVotedPlayer(null)
+      setPlayerHasVoted(false)
+      setIsVotingCompleted(false)
+      setIsPlayerReady(false)
+      setChoosedNumber(null)
+      setIsChoosingCompleted(false)
+      setGuess(null)
+      setIsGuessingComplete(false)
+    }
+  }, [isNewRoundStarted])
 
   // handlers
   function handleVotedPlayer(player: Player) {
@@ -100,6 +113,10 @@ export default function Game() {
     socketRef.current?.emit('mainPlayer_guess', number)
   }
 
+  function handleStartNewRound() {
+    socketRef.current?.emit('start_new_round')
+  }
+
   return (
     <roomCreatorContext.Provider value={roomCreator}>
       <div className="ml-8 mr-8 mt-12 flex justify-between">
@@ -140,7 +157,7 @@ export default function Game() {
         </div>
 
         {/* lobby */}
-        {!isRoundStarted && (
+        {!isRoundStarted && !isNewRoundStarted && (
           <Lobby
             players={players}
             roomCreator={roomCreator}
@@ -151,7 +168,7 @@ export default function Game() {
         )}
 
         {/* voting */}
-        {isRoundStarted && !allPlayersReady && !questionsStarted && (
+        {(isRoundStarted || isNewRoundStarted) && !allPlayersReady && !questionsStarted && (
           <VotingSection
             players={players}
             votedPlayer={votedPlayer}
@@ -166,7 +183,7 @@ export default function Game() {
 
         <mainPlayerContext.Provider value={mainPlayer}>
           {/* choose a number */}
-          {isRoundStarted && allPlayersReady && !questionsStarted && (
+          {(isRoundStarted || isNewRoundStarted)  && allPlayersReady && !questionsStarted && (
             <ChooseScore
               choosedNumber={choosedNumber}
               isChoosingComplete={isChoosingComplete}
@@ -177,7 +194,7 @@ export default function Game() {
           )}
 
           {/* questions / answers */}
-          {isRoundStarted && questionsStarted && !isGuessSectionStarted && (
+          {(isRoundStarted || isNewRoundStarted)  && questionsStarted && !isGuessSectionStarted && (
             <GameSection
               players={players}
               mainPlayer={mainPlayer}
@@ -196,7 +213,7 @@ export default function Game() {
             />
           )}
 
-          {isGuessSectionStarted && (
+          {isGuessSectionStarted && !isResultSectionStarted && (
             <GuessSection
               mainPlayer={mainPlayer}
               players={players}
@@ -205,8 +222,17 @@ export default function Game() {
               onGuess={handleGuess}
               guess={guess}
               isGuessingComplete={isChoosingComplete}
+              />   
+          )}
+
+          {isResultSectionStarted && (
+            <ResultSection
+              isMainPlayerWinner={isMainPlayerWinner}
+              mainPlayer={mainPlayer}
+              players={players}
+              mySocketId={mySocketId}
+              onStartNewRound={handleStartNewRound}
               />
-              
           )}
 
           {/* chat */}

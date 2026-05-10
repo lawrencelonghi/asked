@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { Player } from '../../../shared/types/game'
-import Slider from './Slider'
-import Button from './Button'
+import { Player } from '../../../../shared/types/game'
+import Slider from '../../components/Slider'
+import Button from '../../components/Button'
 
 interface GuessSectionProps {
   mainPlayer: Player | null
