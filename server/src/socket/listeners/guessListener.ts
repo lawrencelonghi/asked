@@ -1,7 +1,6 @@
+// src/socket/listeners/guessListener.ts
 import { ConnectionListener } from "./connectionListener.js";
 import { type Server, type Socket } from 'socket.io'
-import { Round } from "../../models/round.js";
-import Room from "../../models/room.js";
 import { RoomRepository } from "../../repositories/roomRepository.js";
 import { RoundRepository } from "../../repositories/roundRepository.js";
 
@@ -20,27 +19,13 @@ export class GuessConnectionListener extends ConnectionListener {
   }
 
   private handleGuess() {
-    this.socket.on('mainPlayer_guess', (guess) => {
-      const room = this.roomRepository.findBySocketId(this.socket.id)
-      if(!room) return 
+    this.socket.on('mainPlayer_guess', (guess: number) => {
+      const room  = this.roomRepository.findBySocketId(this.socket.id)
+      const round = room && this.roundRepository.findActiveByRoom(room)
+      if (!room || !round) return
 
-      const round = this.roundRepository.findActiveByRoom(room)
-      if(!round) return
-
-      const score = round.getScore()
-      if(!score) return 
-
-      const isMainPlayerWinner = round.isMainPlayerWinner(guess)
-
-      this.io.to(room.getId()).emit('start_game_result', true)
-      this.io.to(room.getId()).emit('isMainPlayer_winner', isMainPlayerWinner)
-      
-      if(isMainPlayerWinner) {
-        console.log('mainPlayer acertou');
-      } else {
-        console.log('mainPlayer errou'); 
-      }
-      
+      round.handleGuess(guess, this.io, room.getId())
+      this.roundRepository.save(round)
     })
   }
 }

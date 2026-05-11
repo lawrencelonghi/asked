@@ -4,7 +4,7 @@ import { RoomRepository } from "../../repositories/roomRepository.js";
 import { RoundRepository } from "../../repositories/roundRepository.js";
 import { ConnectionListener } from "./connectionListener.js";
 import { Server, Socket } from 'socket.io'
-
+import { VotingState } from "../../states/votingState.js";
 
 export class RoundListenerConnection extends ConnectionListener  {
 
@@ -34,6 +34,8 @@ export class RoundListenerConnection extends ConnectionListener  {
       if (!room.isRoomCreator(this.socket.id)) return
 
       const round = new Round(room) 
+      round.setState(new VotingState()) // ← essa linha estava faltando
+
 
       this.roundRepository.save(round)
 

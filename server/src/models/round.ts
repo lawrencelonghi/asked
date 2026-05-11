@@ -5,6 +5,10 @@ import Room from "./room.js";
 import type { Question } from "./question.js";
 import type { Answer } from "./answer.js";
 import { QuestionAndAnswer } from './questionsAndAnswers.js'
+import { LobbyState } from "../states/lobbyState.js"
+import type { RoundState } from "../states/roundStateInterface.js";
+import { Server, Socket } from 'socket.io'
+
 
 export class Round {
   private id: string
@@ -17,6 +21,8 @@ export class Round {
   private answeredPlayers: Player[] = []
   private qaList: QuestionAndAnswer[]
   private currentQAIndex: number = 0
+  private state: RoundState = new LobbyState()
+
 
 
   constructor(room: Room ) {
@@ -30,27 +36,55 @@ export class Round {
     this.qaList = []
   }
 
-    private generateRoundId() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sem caracteres confusos
-      const length = 12
-      let id = '';
-
-      for (let i = 0; i < length; i++) {
-          id += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-
-      return id;
+    setState(state: RoundState) {
+        console.log(`[Round ${this.id}] ${this.state.name} → ${state.name}`)
+        this.state = state
     }
 
-   getId() {
+    getStateName() { return this.state.name }
+
+    handleVote(vote: Vote, io: Server, roomId: string) {
+        this.state.onVote(this, vote, io, roomId)
+    }
+
+    handleScore(score: number, player: Player, io: Server, roomId: string) {
+        this.state.onScoreChoosed(this, score, player, io, roomId)
+    }
+
+    handleQuestion(content: string, io: Server, roomId: string) {
+        this.state.onQuestion(this, content, io, roomId)
+    }
+
+    handleAnswer(content: string, player: Player, io: Server, roomId: string) {
+        this.state.onAnswer(this, content, player, io, roomId)
+    }
+
+    handleGuess(guess: number, io: Server, roomId: string) {
+        this.state.onGuess(this, guess, io, roomId)
+    }
+
+
+    private generateRoundId() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sem caracteres confusos
+        const length = 12
+        let id = '';
+
+        for (let i = 0; i < length; i++) {
+            id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        return id;
+    }
+
+    getId() {
     return this.id
-   }
+    }
 
-   getRoom() {
+    getRoom() {
     return this.room
-   }
+    }
 
-   getVotes() {
+    getVotes() {
         return this.votes
     }
 
@@ -101,8 +135,8 @@ export class Round {
     }
 
     allPlayersReadyToPlay(): boolean {
-      return this.room.getPlayers().every(p => 
-          this.playersReadyToPlay.some(ready => ready.socketId === p.socketId))
+        return this.room.getPlayers().every(p => 
+            this.playersReadyToPlay.some(ready => ready.socketId === p.socketId))
     }
 
     gameStarted(): boolean {
@@ -142,7 +176,7 @@ export class Round {
     }
 
     startQA(askedTo: Player) {
-      this.qaList.push(new QuestionAndAnswer(askedTo))
+        this.qaList.push(new QuestionAndAnswer(askedTo))
     }
 
     setQuestion(question: Question) {
@@ -188,9 +222,4 @@ export class Round {
     isMainPlayerWinner(guess: number): boolean {
         return this.getScore() === guess  // aqui também estava usando this.mainPlayerGuess em vez do parâmetro
     }
-
-    endRound() {
-
-    }
-    
 }

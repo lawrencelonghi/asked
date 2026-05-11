@@ -23,38 +23,14 @@ export class chooseNumberConnectionListener extends ConnectionListener {
   }
 
   private scoreHandler() {
-    this.socket.on('score_choosed', (score: Score) => {
-      const room = this.roomRepository.findBySocketId(this.socket.id)
+    this.socket.on("score_choosed", (score: number) => {
+      const room   = this.roomRepository.findBySocketId(this.socket.id)
+      const round  = room && this.roundRepository.findActiveByRoom(room)
+      const player = room?.getPlayerBySocketId(this.socket.id)
+      if (!room || !round || !player) return
 
-      if (!room) return
-
-      const round = this.roundRepository.findActiveByRoom(room)
-      if(!round) return
-
-      round.addScore(score)
+      round.handleScore(score, player, this.io, room.getId())
       this.roundRepository.save(round)
-
-      const mainPlayer = round.getMainPlayer()
-
-      const allPlayersChossen = round.allPlayersChossen()
-      
-      if(allPlayersChossen) {
-        const roundScore = round.getScore()
-        const mainPlayer = round.getMainPlayer()
-        const players = room.getPlayers()
-
-        if(mainPlayer) {
-          const firstToAnswer = round.getNextPlayerToAnswer(players, mainPlayer)
-          this.io.to(room.getId()).emit('next_player_to_answer', firstToAnswer)
-        }
-
-
-        this.messageRepository.deleteByRoomId(room.getId())
-
-        this.io.to(room.getId()).except(mainPlayer?.socketId ?? '').emit('round_score',roundScore)  
-
-        this.io.to(room.getId()).emit('questions_started', true)
-      }
     })
   }
 }

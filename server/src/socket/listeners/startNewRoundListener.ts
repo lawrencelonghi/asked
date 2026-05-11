@@ -35,8 +35,6 @@ export class StartNewRoundListenerConnection extends ConnectionListener  {
       const round = this.roundRepository.findActiveByRoom(room)
       if(!round) return
 
-      round.endRound()
-
       const newRound = new Round(room)
 
       this.roundRepository.save(newRound)

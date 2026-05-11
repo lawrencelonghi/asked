@@ -25,44 +25,13 @@ export class QuestionConnectionListener extends ConnectionListener {
   }
 
   private handleQuestion() {
-    this.socket.on('mainPlayer_question', (data) => {
-      const mainPlayerQuestion = data
-      
-      const room = this.roomRepository.findBySocketId(this.socket.id)
-      if(!room) return
+    this.socket.on("mainPlayer_question", (content: string) => {
+      const room  = this.roomRepository.findBySocketId(this.socket.id)
+      const round = room && this.roundRepository.findActiveByRoom(room)
+      if (!room || !round) return
 
-      const round = this.roundRepository.findActiveByRoom(room)
-      if(!round) return
-
-      const players = this.playerRepository.getPlayersByRoom(room)
-      if(!players) return 
-
-      const mainPlayer = round?.getMainPlayer()
-      if(!mainPlayer) return
-
-      
-
-      const nextPlayerToAnswer = round.getNextPlayerToAnswer(players, mainPlayer)
-      if(!nextPlayerToAnswer) return console.log('a rodada acabou');
-
-      const savedQuestion = new Question(mainPlayerQuestion, nextPlayerToAnswer)
-
-      //inicia par pergunta/resposta indicando quem deve responder
-      round.startQA(nextPlayerToAnswer)
-
-      round.setQuestion(savedQuestion)
-
-      const qaList = round.getQAList()
-
-      this.io.to(room.getId()).emit('next_player_to_answer', nextPlayerToAnswer)
-      this.io.to(room.getId()).emit('main_player_question', mainPlayerQuestion)
-      this.io.to(room.getId()).emit('qa_list', qaList)
-
-
+      round.handleQuestion(content, this.io, room.getId())
       this.roundRepository.save(round)
-
-      console.log('a pergunta é:', mainPlayerQuestion, 'e quem deve responder é:', nextPlayerToAnswer.name);
-      
     })
   }
 }
