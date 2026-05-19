@@ -1,49 +1,32 @@
 import type Room from "../models/room.js";
-import { roomList } from "../storage/storage.js";
+import prisma from "../lib/prisma.js";
 
 export class RoomRepository {
-    roomList: Room[]
 
-    constructor() {
-        this.roomList = roomList
-    }
+  async findById(id: string): Promise<Room | null> {
+    return await prisma.room.findUnique({ where: { id } })
+  }
 
-    //pega o room pelo id do proprio room
-    findById(id: string): Room | null {
-        return this.roomList.find(room => room.getId() === id) ?? null
-    }
+  async findBySocketId(socketId: string): Promise<Room | null> {
+    return await prisma.room.findFirst({ where: { socketId } })
+  }
 
-    //pega o room atraves do id da conexão algum player
-    findBySocketId(socketId: string): Room | null {
-        return this.roomList.find(room => room.hasPlayer(socketId)) ?? null
-    }
-    
-    save(room: Room): RoomRepository {
-        const index = this.roomList.findIndex(r => r.getId() === room.getId());
-        if (index !== -1) {
-            this.roomList[index] = room;
-        } else {
-            this.roomList.push(room);
-        }
+  async save(room: Room): Promise<void> {
+    await prisma.room.upsert({
+      where: { id: room.getId() },
+      update: {},
+      create: {
+        id: room.getId(),
+        socketId: room.getSocketId(),
+      }
+    })
+  }
 
-        return this
-    }
+  async delete(room: Room): Promise<void> {
+    await prisma.room.delete({ where: { id: room.getId() } })
+  }
 
-    delete(room: Room): RoomRepository {
-        const index = this.roomList.findIndex(r => r.getId() === room.getId());
-        if (index !== -1) {
-            this.roomList.splice(index, 1);
-        }
-
-        return this
-    }
-
-    deleteBySocketId(socketId: string): RoomRepository {
-        const index = this.roomList.findIndex(r => r.getSocketId() === socketId);
-        if (index !== -1) {
-            this.roomList.splice(index, 1);
-        }
-
-        return this
-    }
+  async deleteBySocketId(socketId: string): Promise<void> {
+    await prisma.room.deleteMany({ where: { socketId } })
+  }
 }

@@ -26,12 +26,12 @@ export class RoomConnectionListener extends ConnectionListener {
   }
 
 private onCreateRoom() {
-    this.socket.on('create_room', (data) => {
+    this.socket.on('create_room', async (data) => {
         const room = new Room(this.socket.id)
         const player = new Player(data.name, this.socket.id)
 
         room.addPlayer(player)
-        this.roomRepository.save(room)
+        await this.roomRepository.save(room)
 
         this.socket.join(room.getId())
         this.socket.emit('room_id', room.getId())
@@ -42,15 +42,15 @@ private onCreateRoom() {
 }
 
 private onJoinRoom() {
-    this.socket.on('join_room', (data: { roomId: string, name: string }) => {
-        const room = this.roomRepository.findById(data.roomId)
+    this.socket.on('join_room', async (data: { roomId: string, name: string }) => {
+        const room = await this.roomRepository.findById(data.roomId)
 
         if (!room) {
             this.socket.emit('room_error', 'Room not found')
             return
         }
 
-        const round = this.roundRepository.findActiveByRoom(room)
+        const round = await this.roundRepository.findActiveByRoom(room)
         if (round) {
             this.socket.emit('room_error', 'You are late. Game already started')
             return
@@ -58,7 +58,7 @@ private onJoinRoom() {
 
         const player = new Player(data.name, this.socket.id)
         room.addPlayer(player)
-        this.roomRepository.save(room)
+        await this.roomRepository.save(room)
 
         this.socket.join(room.getId())
         this.socket.emit('room_id', room.getId())
@@ -70,17 +70,17 @@ private onJoinRoom() {
 }
 
   private onDisconnect() {
-      this.socket.on('disconnect', () => {
-          const room = this.roomRepository.findBySocketId(this.socket.id)
+      this.socket.on('disconnect', async () => {
+          const room = await this.roomRepository.findBySocketId(this.socket.id)
 
           if (!room) return
 
           room.removePlayer(this.socket.id)
 
           if(room.getPlayers().length === 0) {
-            this.roomRepository.delete(room)
+            await this.roomRepository.delete(room)
           } else {
-            this.roomRepository.save(room)
+            await this.roomRepository.save(room)
           }
 
           this.io.to(room.getId()).emit(
