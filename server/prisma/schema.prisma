@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -13,12 +7,76 @@ datasource db {
   provider = "postgresql"
 }
 
-model Room {
-  id     Int      @id @default(autoincrement())
+model Player {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  rounds    Round[]  @relation("MainPlayer")
+  votes     Vote[]   @relation("WhoVoted")
+  votedFor  Vote[]   @relation("VotedFor")
+  scores    Score[]
+  questions Question[]
+  answers   Answer[]
 }
 
-model Player {
-  id     Int      @id @default(autoincrement())
-  name   String?
+model Room {
+  id        String   @id
+  socketId  String
   createdAt DateTime @default(now())
+  rounds    Round[]
+}
+
+model Round {
+  id           String     @id @default(cuid())
+  roomId       String
+  room         Room       @relation(fields: [roomId], references: [id])
+  mainPlayerId String?
+  mainPlayer   Player?    @relation("MainPlayer", fields: [mainPlayerId], references: [id])
+  createdAt    DateTime   @default(now())
+
+  votes     Vote[]
+  scores    Score[]
+  questions Question[]
+  answers   Answer[]
+}
+
+model Vote {
+  id          String @id @default(cuid())
+  roundId     String
+  round       Round  @relation(fields: [roundId], references: [id])
+  whoVotedId  String
+  whoVoted    Player @relation("WhoVoted", fields: [whoVotedId], references: [id])
+  votedForId  String
+  votedFor    Player @relation("VotedFor", fields: [votedForId], references: [id])
+}
+
+model Score {
+  id       String @id @default(cuid())
+  number   Int
+  roundId  String
+  round    Round  @relation(fields: [roundId], references: [id])
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id])
+}
+
+model Question {
+  id       String  @id @default(cuid())
+  content  String
+  roundId  String
+  round    Round   @relation(fields: [roundId], references: [id])
+  askedToId String
+  askedTo  Player  @relation(fields: [askedToId], references: [id])
+  answer   Answer?
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  content    String
+  questionId String   @unique
+  question   Question @relation(fields: [questionId], references: [id])
+  roundId    String
+  round      Round    @relation(fields: [roundId], references: [id])
+  playerId   String
+  player     Player   @relation(fields: [playerId], references: [id])
 }

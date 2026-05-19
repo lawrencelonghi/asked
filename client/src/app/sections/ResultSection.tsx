@@ -24,17 +24,17 @@ const ResultSection = ({
     <div>
       {/* mainPlayer */}
       {mainPlayer?.socketId === mySocketId && (
-        <div>
+        <div className='mt-18 flex flex-col gap-30'>
           {/* mainPlayer is winner */}
           {isMainPlayerWinner && (
             <div>
-              <h2>ACERTOU</h2>
+              <h2 className='text-6xl text-green-600'>ACERTOU</h2>
             </div>
           )}
           {/* mainPlayer is a looser */}
           {!isMainPlayerWinner && (
             <div>
-              ERROU
+              <h2 className='text-6xl text-red-600'>ERROU</h2>
             </div>
           )}
 
@@ -48,13 +48,13 @@ const ResultSection = ({
           {/* mainPlayer is winner */}
           {isMainPlayerWinner && (
             <div>
-              <h2>{mainPlayer?.name} ACERTOU</h2>
+              <h2>{mainPlayer?.name.toUpperCase()} ACERTOU</h2>
             </div>
           )}
           {/* mainPlayer is a looser */}
           {!isMainPlayerWinner && (
             <div>
-              <h2>{mainPlayer?.name} ERROU</h2>
+              <h2>{mainPlayer?.name.toUpperCase()} ERROU</h2>
             </div>
           )}
         </div>        
